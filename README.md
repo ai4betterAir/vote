@@ -86,3 +86,17 @@ The five positions are **President**, **Secretary**, **Vice President**, **Joint
 A four-digit phone suffix is **knowledge-based verification**, not a real SMS/phone ownership check. The SQL protects stored checks with salted password hashes, limits wrong attempts per member (five attempts, one-hour lock), provides short-lived session tokens, enforces one ballot per voter, and rejects self-votes. However, four digits can still be guessed or known by others. For higher-stakes elections, require SMS OTP or an independently validated identity check.
 
 Votes and individual selections are never publicly exposed; the bar-chart results are only returned by the database after the scheduled closing time. Database administrators may still access underlying ballot records. Polls cannot be modified after publication in the current version.
+
+## Masrur administrator dashboard (MATES committee)
+
+In [MATES voting panel](https://ai4betterair.github.io/vote/mates.html), choose **Admin: Create election**. The designated admin is **Masrur**. Enter the last four digits of Masrur's registered number; the server compares them against the privately loaded, salted hash (the digits are never included in public HTML or GitHub). After a successful verification, a short-lived 20-minute admin session unlocks:
+
+- **Manage members:** Add, edit, or remove first-name entries; add/reset each member's final four phone digits without exposing them publicly.
+- **Create election:** Set poll title, opening and closing dates/times, and position names (one per line).
+- **Share ballot:** Copy the election-specific link for the verified member voters.
+
+The initial MATES member list is supplied separately via the private SQL setup; it must be loaded in Supabase once before Masrur can log in. Administrator actions do not require public email login. Do not share the private setup SQL or embed any digits in the GitHub repository.
+
+Execute the **latest** [mates-schema.sql](mates-schema.sql) after [schema.sql](schema.sql) and then the private member initialization file. The updated SQL adds the admin PIN-verification functions, an admin member-management API, and custom election positions.
+
+Important: Member names and verification digits cannot be changed once an election has started, to keep the electorate stable. Admin setup cannot go live until the Supabase project URL and publishable key are configured in `mates.html`. The four-digit method is not SMS OTP and is not strong identity proof.
