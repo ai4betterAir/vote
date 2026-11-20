@@ -162,3 +162,75 @@ grant execute on function public.mates_verify_member(uuid,uuid,text) to anon,aut
 grant execute on function public.mates_ballot_status(uuid,text) to anon,authenticated;
 grant execute on function public.mates_submit_ballot(uuid,text,jsonb) to anon,authenticated;
 grant execute on function public.mates_results(uuid) to anon,authenticated;
+
+-- MATES administrator access: Masrur is the designated administrator.
+-- Admin verification is separate from member ballot verification, and uses
+-- the existing PRIVATE hashed phone suffix in mates_members.
+create table if not exists public.mates_admin_sessions(
+ token_hash text primary key,
+ member_id uuid not null references public.mates_members(id),
+ expires_at timestamptz not null
+);
+alter table public.mates_admin_sessions enable row level security;
+revoke all on public.mates_admin_sessions from anon,authenticated;
+
+create or replace function public.mates_admin_verify(p_last4 text)
+returns text language plpgsql volatile security definer set search_path=public,extensions,pg_temp as $$
+declare m public.mates_members%rowtype; tok text;
+begin
+ select * into m from public.mates_members where first_name='Masrur' for update;
+ if not found or (m.locked_until is not null and m.locked_until>now()) then return null; end if;
+ if p_last4 is null or p_last4 !~ '^[0-9]{4}$'
+    or crypt(p_last4,m.pin_hash)<>m.pin_hash then
+   update public.mates_members set
+   failed_attempts=case when locked_until is not null and locked_until<=now() then 1 else failed_attempts+1 end,
+   locked_until=case when
+     (case when locked_until is not null and locked_until<=now() then 1 else failed_attempts+1 end)>=5
+     then now()+interval '1 hour' else null end
+   where id=m.id;
+   return null;
+ end if;
+ update public.mates_members set failed_attempts=0,locked_until=null where id=m.id;
+ tok:=encode(gen_random_bytes(32),'hex');
+ insert into public.mates_admin_sessions(token_hash,member_id,expires_at)
+ values(encode(digest(tok,'sha256'),'hex'),m.id,now()+interval '20 minutes');
+ return tok;
+end; $$;
+
+create or replace function public.mates_create_election_admin(
+ p_token text,p_title text,p_starts timestamptz,p_ends timestamptz
+) returns uuid language plpgsql volatile security definer set search_path=public,extensions,pg_temp as $$
+declare new_id uuid;
+begin
+ if not exists(
+   select 1 from public.mates_admin_sessions s
+   join public.mates_members m on m.id=s.member_id
+   where s.token_hash=encode(digest(coalesce(p_token,''),'sha256'),'hex')
+     and s.expires_at>now() and m.first_name='Masrur'
+ ) then raise exception 'Administrator verification expired. Verify again'; end if;
+ if char_length(btrim(coalesce(p_title,''))) not between 3 and 120
+    or p_starts is null or p_ends is null or p_ends<=p_starts or p_ends<=now()
+ then raise exception 'Invalid election title or dates'; end if;
+ if (select count(*) from public.mates_members)<>9 then
+   raise exception 'Load the nine members before creating an election'; end if;
+ insert into public.mates_elections(title,starts_at,ends_at)
+ values(btrim(p_title),p_starts,p_ends) returning id into new_id;
+ return new_id;
+end; $$;
+
+create or replace function public.mates_admin_sign_out(p_token text)
+returns void language plpgsql volatile security definer set search_path=public,extensions,pg_temp as $$
+begin
+ delete from public.mates_admin_sessions
+ where token_hash=encode(digest(coalesce(p_token,''),'sha256'),'hex');
+end; $$;
+
+-- Remove the former email-admin path for this specific committee election.
+-- Other OpenPoll poll administration remains unchanged.
+revoke execute on function public.mates_create_election(text,timestamptz,timestamptz) from authenticated;
+revoke all on function public.mates_admin_verify(text) from public,anon,authenticated;
+revoke all on function public.mates_create_election_admin(text,text,timestamptz,timestamptz) from public,anon,authenticated;
+revoke all on function public.mates_admin_sign_out(text) from public,anon,authenticated;
+grant execute on function public.mates_admin_verify(text) to anon,authenticated;
+grant execute on function public.mates_create_election_admin(text,text,timestamptz,timestamptz) to anon,authenticated;
+grant execute on function public.mates_admin_sign_out(text) to anon,authenticated;
