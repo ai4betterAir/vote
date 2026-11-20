@@ -1,3 +1,9 @@
+## Fix: “relation public.mates_members does not exist”
+
+If Supabase reports this error, first copy and execute the complete **[00_FIX_MATES_MEMBERS_FIRST.sql](00_FIX_MATES_MEMBERS_FIRST.sql)** in **Supabase SQL Editor**. It safely creates the missing members table and its public first-name function, without storing phone digits in GitHub.
+
+Next execute **[schema.sql](schema.sql)**, then **[mates-schema.sql](mates-schema.sql)**, checking that each finishes without an error. Finally execute the **private voter setup SQL locally in Supabase SQL Editor** to insert the nine members with hashed four-digit verifiers. Do not share the private SQL publicly. If the full MATES schema errors, stop and report the exact message before proceeding.
+
 # OpenPoll — flexible polling website
 
 Public website: https://ai4betterair.github.io/vote/
