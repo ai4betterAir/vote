@@ -68,3 +68,21 @@ Choose **Create Poll → Import JSON**, paste the following and click **Apply JS
 - Administrator access to database records is **not** the same as secret-ballot anonymity; database administrators can potentially link a vote to its voter. Do not use this as an independently audited or anonymous election system.
 - Emails can be approved in the allowlist, but this does not independently verify a voter's offline identity.
 - Creating any poll is restricted to configured administrators; if no administrator is configured, you can still design and export a poll JSON.
+
+## MATES EC Committee — dedicated name-and-phone-check ballot
+
+The site has an optional MATES election mode at **https://ai4betterair.github.io/vote/mates.html** while the general-purpose OpenPoll homepage remains available.
+
+The five positions are **President**, **Secretary**, **Vice President**, **Joint Secretary**, and **Treasurer**. The candidate and voter roster comprises nine first names: Masrur, AbdulAhad, Akter, Rubel, Anwar, Numan, Sakil, Shamim, and Turab. Every verified voter sees the other eight members only; self-voting is prohibited by the database, not just the interface.
+
+### Additional deployment steps for MATES
+
+1. Complete general Supabase setup above (including administrator email authorisation), then execute **[mates-schema.sql](mates-schema.sql)** in Supabase SQL Editor.
+2. Run the separately provided **PRIVATE MATES voter setup SQL** in Supabase SQL Editor. **Never commit that private file** or its four-digit checks to this public repository.
+3. Set the **same Supabase Project URL and publishable/anon key** in `mates.html` as you set in `index.html` (two files).
+4. Visit `mates.html`, use **Admin: Create election** and set start and end times. Only a signed-in authorised `poll_admins` user can publish it. Note that admin sign-in uses the general OpenPoll homepage.
+5. The published election has a **Copy voting link** button. Share that link directly with the nine eligible members. Each selects their first name and enters the final four digits of their registered phone number to unlock their ballot.
+
+A four-digit phone suffix is **knowledge-based verification**, not a real SMS/phone ownership check. The SQL protects stored checks with salted password hashes, limits wrong attempts per member (five attempts, one-hour lock), provides short-lived session tokens, enforces one ballot per voter, and rejects self-votes. However, four digits can still be guessed or known by others. For higher-stakes elections, require SMS OTP or an independently validated identity check.
+
+Votes and individual selections are never publicly exposed; the bar-chart results are only returned by the database after the scheduled closing time. Database administrators may still access underlying ballot records. Polls cannot be modified after publication in the current version.
