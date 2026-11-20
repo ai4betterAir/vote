@@ -1,15 +1,60 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CommitteeVote | Executive Committee Elections</title>
+<title>MATES Foundation | Executive Committee Elections</title>
+<meta name="description" content="MATES Foundation executive committee election portal. Secure voting for eligible members and transparent results after the election closes.">
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png">
 <meta name="theme-color" content="#142b51">
 <style>
 :root{font:16px system-ui,-apple-system,Segoe UI,sans-serif;color:#182b49;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}header{background:white;border-bottom:1px solid #e1e7f1}.wrap{max-width:1060px;margin:auto;padding:0 22px}.nav{min-height:78px;display:flex;justify-content:space-between;align-items:center;gap:15px}.logo{font-size:22px;font-weight:800;text-decoration:none;color:#182e55}.logo span{background:#264782;color:white;padding:9px 12px;border-radius:11px;margin-right:8px}.actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.btn{border:0;background:#284985;color:#fff;border-radius:11px;padding:12px 17px;font-weight:700;cursor:pointer}.btn.secondary{background:#fff;color:#284985;border:1px solid #cdd7e8}.btn:disabled{opacity:.5;cursor:not-allowed}.hero{background:linear-gradient(112deg,#142b52,#294b86);color:#fff}.hero-inner{padding:64px 0;display:grid;grid-template-columns:1.5fr .7fr;align-items:center;gap:45px}.hero h1{font-size:clamp(32px,4.8vw,52px);letter-spacing:-1.8px;line-height:1.15;margin:10px 0}.hero p{color:#dae6fa;line-height:1.75;max-width:570px}.eyebrow{letter-spacing:2px;color:#a9cef5;font-weight:800;font-size:12px}.mock{border:1px solid #ffffff44;background:#ffffff17;border-radius:20px;padding:22px;transform:rotate(3deg)}.mock div{background:#ffffff22;border-radius:10px;padding:14px;margin:9px 0}.main{padding:48px 0 80px}h2{font-size:25px;letter-spacing:-.7px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:18px}.card,.panel{background:#fff;border:1px solid #e1e7f1;border-radius:18px;padding:24px;box-shadow:0 6px 28px #22395408}.card h3{margin:17px 0 8px;font-size:20px}.muted{color:#778397;line-height:1.6}.tag{display:inline-block;border-radius:30px;background:#e8f2ff;color:#2b5588;padding:7px 11px;font-size:12px;font-weight:750}.tag.open{background:#e5f8eb;color:#267a56}.tag.closed{background:#ecedf0;color:#667084}.card-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #edf0f5;padding-top:16px;margin-top:20px}.small{font-size:12px}.panel{max-width:800px;margin:0 auto}.panel h2{margin-top:0}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{margin:15px 0}.field label{font-size:13px;font-weight:700;display:block;margin-bottom:7px}.field input,.field textarea{width:100%;border:1px solid #cfd8e7;padding:13px;border-radius:11px;font:inherit;color:#1a2e4d}.field textarea{min-height:125px}.office{padding:19px;margin:16px 0;border:1px solid #e1e7ef;border-radius:13px}.office h3{margin:0 0 13px}.option{display:flex;gap:12px;align-items:center;border:1px solid #dce4ef;border-radius:10px;padding:14px;margin:9px 0;cursor:pointer}.option:has(input:checked){border-color:#4a72bd;background:#f0f5ff}.option input{accent-color:#284985;width:18px;height:18px}.notice{padding:15px 17px;background:#fff8e6;color:#765d1b;border:1px solid #eee0b6;border-radius:12px;line-height:1.6;margin:18px 0}.notice.error{background:#fff0ef;color:#91352d;border-color:#f2cac6}.notice.ok{background:#e8f9ed;color:#236a43;border-color:#c4eacb}.chart{margin:17px 0}.chartline{display:flex;justify-content:space-between;gap:14px;font-size:13px;margin-bottom:7px}.track{height:14px;background:#e9eef7;border-radius:30px;overflow:hidden}.fill{height:100%;border-radius:30px;background:linear-gradient(90deg,#3b63b0,#87a8ee)}.hidden{display:none!important}.back{border:0;background:transparent;color:#315899;font-weight:700;margin-bottom:22px;cursor:pointer}.empty{text-align:center;padding:50px 20px}.footer{padding:26px;text-align:center;border-top:1px solid #dfe5ec;color:#8490a1;font-size:12px}@media(max-width:650px){.hero-inner{grid-template-columns:1fr;padding:45px 0}.mock{display:none}.form-grid{grid-template-columns:1fr}.nav{flex-wrap:wrap;padding:17px 0}}
+
+/* MATES Foundation visual identity */
+:root{color:#22334c;background:#f7f9f8}
+header{border-color:#e4e9e3;box-shadow:0 3px 18px #112b1f08}
+.wrap{max-width:1140px}
+.nav{min-height:92px}
+.logo{display:flex;align-items:center;gap:13px;color:#153d35;font-size:20px;letter-spacing:-.45px}
+.brand-emblem{width:62px;height:62px;object-fit:contain;filter:drop-shadow(0 2px 3px #0d30201b)}
+.brand-label{display:flex;flex-direction:column;gap:2px}
+.brand-label small{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#8a7650;font-weight:750}
+.btn{background:#145347;border-radius:10px;padding:13px 19px;box-shadow:0 3px 9px #14534713;transition:transform .15s,background .15s}
+.btn:hover:not(:disabled){background:#0d3f36;transform:translateY(-1px)}
+.btn.secondary{color:#155144;border-color:#d9e4df;box-shadow:none}
+.hero{background:radial-gradient(circle at 87% 12%,#1b706340,transparent 34%),linear-gradient(110deg,#103e37,#164f49 62%,#133b45);position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;right:-155px;top:-215px;width:560px;height:560px;border:1px solid #ffffff26;border-radius:50%;box-shadow:0 0 0 74px #ffffff09,0 0 0 149px #ffffff05;pointer-events:none}
+.hero-inner{position:relative;grid-template-columns:1.4fr .75fr;padding:74px 0 82px}
+.hero h1{letter-spacing:-1.5px;font-size:clamp(36px,4.5vw,57px);line-height:1.15;margin:17px 0}
+.hero h1 em{font-style:normal;color:#e9c982}
+.hero p{font-size:16px;color:#e0efeb;max-width:630px}
+.eyebrow{color:#f3cf8d;font-size:12px;letter-spacing:2.3px}
+.hero-identity{background:#fff;border-radius:22px;padding:27px;box-shadow:0 22px 50px #082a2660;text-align:center;color:#143e37;border:1px solid #dbede9}
+.hero-identity img{width:155px;height:155px;object-fit:contain;margin:0 auto 8px;display:block}
+.hero-identity strong{display:block;font-size:19px}
+.hero-identity p{color:#647c73;font-size:13px;line-height:1.7;margin:9px auto}
+.hero-pill{display:inline-flex;gap:8px;align-items:center;background:#e6f3ed;border:1px solid #d1e8dc;border-radius:99px;padding:9px 13px;font-size:12px;color:#236c55;font-weight:750;margin-top:9px}
+.main{padding-top:53px}
+h2{color:#183d34}
+.section-head h2{margin:0 0 7px;font-size:30px}
+.card,.panel{border-color:#e1eae4;box-shadow:0 9px 30px #163a2b0b}
+.card{border-top:4px solid #c3a666;transition:box-shadow .2s,transform .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 15px 33px #163a2b14}
+.tag{background:#eef3f7;color:#476881}
+.tag.open{background:#e2f3e8;color:#1e7652}
+.tag.closed{background:#edf0ee;color:#63716b}
+.field input:focus,.field textarea:focus{outline:2px solid #a9cdbb;outline-offset:1px}
+.option:has(input:checked){background:#eff8f2;border-color:#317a5e}
+.option input{accent-color:#1b654b}
+.fill{background:linear-gradient(90deg,#155d4d,#c8a45b)}
+.track{background:#edf3ee}
+.back{color:#155d4d}
+.footer{background:#fff;color:#728078;border-color:#e3ebe5}
+.footer a{color:#235d4e;text-decoration:none}
+@media(max-width:700px){.hero-inner{grid-template-columns:1fr;padding:50px 0}.hero-identity{display:none}.logo{font-size:17px}.brand-emblem{width:48px;height:48px}.nav{min-height:80px}.section-head h2{font-size:25px}}
 </style></head><body>
-<header><div class="wrap nav"><a class="logo" href="./"><span>✓</span>CommitteeVote</a><div class="actions"><button class="btn secondary" id="homeBtn">Elections</button><button class="btn secondary hidden" id="newBtn">Create poll</button><button class="btn" id="authBtn">Sign in</button></div></div></header>
-<section class="hero" id="hero"><div class="wrap hero-inner"><div><div class="eyebrow">EXECUTIVE COMMITTEE ELECTIONS</div><h1>Every voice counts.<br>Every vote matters.</h1><p>A modern voting space for electing your committee. Choose a candidate for each position and see transparent bar-chart results when voting closes.</p></div><div class="mock"><div>✓ &nbsp; President</div><div>✓ &nbsp; Vice President</div><div>✓ &nbsp; General Secretary</div><div>✓ &nbsp; Treasurer</div></div></div></section>
+<header><div class="wrap nav"><a class="logo" href="./"><img class="brand-emblem" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="MATES Foundation official logo"><span class="brand-label">MATES Foundation<small>Election Portal</small></span></a><div class="actions"><button class="btn secondary" id="homeBtn">Elections</button><button class="btn secondary hidden" id="newBtn">Create poll</button><button class="btn" id="authBtn">Sign in</button></div></div></header>
+<section class="hero" id="hero"><div class="wrap hero-inner"><div><div class="eyebrow">MATES FOUNDATION · MEMBER ELECTIONS</div><h1>Shape our future.<br><em>Make your vote count.</em></h1><p>Welcome to the MATES Foundation executive committee election portal. Eligible members can choose representatives for each position during the voting period. Final results are released after voting closes.</p><div class="hero-pill">✓ &nbsp; One member. One ballot per election.</div></div><aside class="hero-identity"><img src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="MATES Foundation logo"><strong>MATES Foundation</strong><p>Building a better society through community, care and collective action.</p><span class="hero-pill">Executive Committee Elections</span></aside></div></section>
 <main class="wrap main">
 <div id="message" role="status"></div>
-<section id="listView"><div class="section-head"><div><h2>Committee elections</h2><div class="muted">Find your election and cast your ballot.</div></div><button class="btn hidden" id="createBtn">+ Create election</button></div><div id="pollList" class="grid"></div></section>
+<section id="listView"><div class="section-head"><div><h2>Executive committee elections</h2><div class="muted">Browse upcoming, active, and completed MATES Foundation elections.</div></div><button class="btn hidden" id="createBtn">+ Create election</button></div><div id="pollList" class="grid"></div></section>
 <section id="authView" class="hidden"><div class="panel"><button class="back" data-back>← Back to elections</button><h2>Sign in securely</h2><p class="muted">Enter your email to receive a one-time sign-in link. Only verified members can cast ballots.</p><form id="authForm"><div class="field"><label for="email">Email address</label><input type="email" id="email" required placeholder="name@example.com"></div><button class="btn">Email my sign-in link</button></form><p class="muted small">Your administrator must first configure Supabase to enable sign-in and voting.</p></div></section>
 <section id="createView" class="hidden"><div class="panel"><button class="back" data-back>← Back to elections</button><h2>Create an election</h2><p class="muted">The same list of nominees can appear under every executive position. One vote per position, per signed-in member.</p>
 <form id="createForm"><div class="field"><label>Election title</label><input id="pollTitle" required maxlength="120" placeholder="MATES Executive Committee Election 2027"></div><div class="field"><label>Description (optional)</label><textarea id="pollDescription" maxlength="500" placeholder="Choose your executive committee representatives."></textarea></div>
@@ -20,7 +65,7 @@ General Secretary
 Treasurer</textarea></div><div class="field"><label>Candidates — one per line (shared across positions)</label><textarea id="names" required placeholder="Candidate A&#10;Candidate B&#10;Candidate C&#10;Candidate D&#10;Candidate E"></textarea></div>
 <div class="notice">Only an authorised administrator can create an election. Candidate names and deadlines are locked after creation in this first version.</div><button class="btn" type="submit">Create election</button></form></div></section>
 <section id="pollView" class="hidden"><div class="panel"><button class="back" data-back>← All elections</button><div id="pollContent"></div></div></section>
-</main><footer class="footer">CommitteeVote · Hosted on GitHub Pages · Secure vote storage requires Supabase configuration</footer>
+</main><footer class="footer"><strong>MATES Foundation</strong> · Executive Committee Election Portal<br><span>Community · Service · Togetherness</span><br><a href="https://ai4betterair.github.io/MATESFoundation/" target="_blank" rel="noopener">Visit the MATES Foundation website</a></footer>
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const config={url:'SUPABASE_URL_HERE',anonKey:'SUPABASE_ANON_KEY_HERE'};
@@ -33,7 +78,7 @@ const format=t=>new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:'s
 function notify(msg,type=''){ $('message').innerHTML='<div class="notice '+type+'">'+esc(msg)+'</div>'; }
 function show(id){for(const x of ['listView','authView','createView','pollView'])$(x).classList.toggle('hidden',x!==id);$('hero').classList.toggle('hidden',id!=='listView');$('message').innerHTML='';window.scrollTo(0,0)}
 function state(p){let t=Date.now();return t<Date.parse(p.starts_at)?'Upcoming':t<Date.parse(p.ends_at)?'Open':'Closed'}
-async function load(){if(!db){$('pollList').innerHTML='<article class="card empty"><h3>Welcome to CommitteeVote</h3><p class="muted">The website is ready. Connect a Supabase project to create real polls, collect votes securely and automatically release results.</p><span class="tag">Setup required</span></article>';notify('Setup needed: configure Supabase URL and publishable key in index.html, and run schema.sql in your Supabase SQL Editor.');return}
+async function load(){if(!db){$('pollList').innerHTML='<article class="card empty"><h3>Welcome to the MATES Foundation Election Portal</h3><p class="muted">The website is ready. Connect a Supabase project to create real polls, collect votes securely and automatically release results.</p><span class="tag">Setup required</span></article>';notify('Setup needed: configure Supabase URL and publishable key in index.html, and run schema.sql in your Supabase SQL Editor.');return}
 const {data,error}=await db.from('elections').select('id,title,description,starts_at,ends_at').order('starts_at',{ascending:false});if(error){notify(error.message,'error');return}polls=data||[];
 $('pollList').innerHTML=polls.length?polls.map(p=>'<article class="card"><span class="tag '+state(p).toLowerCase()+'">'+state(p)+'</span><h3>'+esc(p.title)+'</h3><p class="muted">'+esc(p.description||'Executive committee election')+'</p><div class="small muted">Closes '+esc(format(p.ends_at))+'</div><div class="card-foot"><span class="small muted">Sydney time (AEDT/AEST)</span><button class="btn" data-open="'+esc(p.id)+'">'+(state(p)==='Closed'?'View results':'View election')+'</button></div></article>').join(''):'<div class="card empty"><h3>No elections yet</h3><p class="muted">An administrator can create the first committee election.</p></div>';
 document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openPoll(b.dataset.open))}
