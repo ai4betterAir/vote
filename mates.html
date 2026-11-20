@@ -1,5 +1,29 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Committee Election | OpenPoll</title><meta name="theme-color" content="#163b62"><style>
 :root{font:16px system-ui,-apple-system,Segoe UI,sans-serif;background:#f5f7fb;color:#21344e}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}header{background:white;border-bottom:1px solid #e0e7f1}.wrap{max-width:970px;margin:auto;padding:0 22px}.nav{min-height:78px;display:flex;justify-content:space-between;align-items:center;gap:15px}.brand{color:#174775;text-decoration:none;font-size:23px;font-weight:850}.brand b{background:#185b99;color:white;padding:9px 12px;border-radius:12px;margin-right:9px}.head{background:linear-gradient(112deg,#12375f,#285d93);color:#fff;padding:42px 0}.head h1{font-size:clamp(29px,4vw,42px);letter-spacing:-1.1px;margin:10px 0}.head p{color:#dce9f6;line-height:1.7;max-width:680px}.eyebrow{letter-spacing:1.8px;text-transform:uppercase;color:#b8daf9;font-size:12px;font-weight:800}main{padding:35px 0 75px}.panel,.card{background:white;border:1px solid #e1e7f0;padding:26px;border-radius:18px;margin:18px 0;box-shadow:0 8px 22px #1c406108}.card h3,.panel h2{margin-top:0}.muted{color:#738296;line-height:1.6}.small{font-size:12px}.field{margin:16px 0}.field label{display:block;font-size:13px;font-weight:750;margin-bottom:8px}.field input,.field select{width:100%;border:1px solid #cbd9e9;background:#fff;padding:13px;border-radius:11px;color:#203958}.btn{border:none;background:#195f9c;color:#fff;padding:13px 19px;border-radius:11px;font-weight:750;cursor:pointer}.btn.secondary{background:#fff;color:#195f9c;border:1px solid #bfcfe0}.btn:disabled{opacity:.55;cursor:not-allowed}.notice{background:#fff9e9;border:1px solid #eee1b8;padding:14px 16px;color:#765f23;border-radius:11px;line-height:1.6;margin:17px 0}.notice.ok{background:#eaf9ee;color:#206e42;border-color:#c8ebd1}.notice.error{background:#fff0ee;color:#9a352e;border-color:#f1cfcb}.tag{font-size:12px;font-weight:800;padding:7px 11px;background:#e7eff9;color:#315e92;border-radius:30px}.tag.open{background:#e5f7eb;color:#236f4e}.tag.closed{background:#edf0f2;color:#616f81}.two{display:grid;grid-template-columns:1fr 1fr;gap:15px}.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:9px}.option{border:1px solid #dbe5ee;display:flex;gap:9px;align-items:center;padding:14px;border-radius:10px;cursor:pointer}.option input{accent-color:#2264a0}.option:has(input:checked){border-color:#427cbb;background:#f0f6fe}.question{border:1px solid #e2e9f0;background:#fbfdff;padding:20px;margin:18px 0;border-radius:14px}.question h3{margin-top:0}.chart{margin:15px 0}.chartline{display:flex;justify-content:space-between;font-size:13px;gap:10px;margin-bottom:8px}.track{height:15px;border-radius:18px;overflow:hidden;background:#eaf0f7}.fill{height:100%;border-radius:18px;background:linear-gradient(90deg,#1d669f,#93bce7)}.hidden{display:none!important}.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}footer{padding:27px;text-align:center;font-size:12px;color:#8190a0}@media(max-width:650px){.two{grid-template-columns:1fr}.panel,.card{padding:18px}.nav{min-height:72px}}
+
+/* Results dashboard: large overall ranking and compact office breakdowns */
+.results-overall{background:linear-gradient(150deg,#fff,#f4f8ff);border:1px solid #c9dbee;border-radius:18px;padding:clamp(22px,4vw,35px);margin:25px 0 30px}
+.results-overall h2{font-size:clamp(25px,3.3vw,34px);letter-spacing:-.7px;margin:8px 0 10px}
+.results-kicker{font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:#396c9f;font-weight:800}
+.results-overall .chart{margin:23px 0}
+.results-overall .chartline{font-size:16px;margin-bottom:10px;align-items:center}
+.results-overall .track{height:24px;background:#e3edf7}
+.results-overall .fill{background:linear-gradient(90deg,#154b85,#468dd1)}
+.results-overall .overall-first .fill{background:linear-gradient(90deg,#126e67,#36ac9b)}
+.results-overall .overall-first strong{color:#106c63}
+.results-topline{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap}
+.results-weight-note{font-size:12px;color:#677f9b;line-height:1.7}
+.results-breakdown{margin-top:28px}
+.results-breakdown h2{font-size:23px;margin-bottom:7px}
+.result-small-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.result-small-grid .question{margin:0;padding:17px;background:#fff}
+.result-small-grid .question h3{font-size:17px;margin:0}
+.result-small-grid .chart{margin:11px 0}
+.result-small-grid .chartline{font-size:12px;margin-bottom:5px}
+.result-small-grid .track{height:9px}
+.result-small-grid .fill{background:linear-gradient(90deg,#638cb8,#9fbee0)}
+.result-small-grid .muted{font-size:12px}
+@media(max-width:720px){.result-small-grid{grid-template-columns:1fr}.results-overall .chartline{font-size:14px}}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand" href="./"><b>✓</b> OpenPoll</a><a class="btn secondary" href="./" style="text-decoration:none">All polls</a></div></header>
 <section class="head"><div class="wrap"><div class="eyebrow">Members-only committee election</div><h1>MATES EC Committee Election</h1><p>Select your name, verify the final four digits of your registered phone number, and vote for one candidate for each executive committee position. You cannot vote for yourself.</p></div></section>
@@ -48,7 +72,61 @@ function renderVotingForm(){const name=roster.find(m=>m.id===verifiedMember)?.fi
 for(const [i,p] of currentPositions.entries()){html+='<div class="question"><h3>'+(i+1)+'. '+esc(p)+'</h3><div class="options">'+candidatesFor(verifiedMember).map(m=>'<label class="option"><input type="radio" name="position_'+i+'" required value="'+esc(m.id)+'">'+esc(m.first_name)+'</label>').join('')+'</div></div>'}
 html+='<div class="notice">Check all five choices before submission. A ballot can only be submitted once.</div><button class="btn" id="castBtn" type="submit">Submit final ballot</button></form>';
 $('ballotContent').innerHTML=html;$('castForm').onsubmit=async e=>{e.preventDefault();const votes=currentPositions.map((position,i)=>({position,candidate_id:document.querySelector('[name="position_'+i+'"]:checked')?.value}));if(votes.some(x=>!x.candidate_id))return;if(!confirm('Submit your final ballot for all five positions? You cannot edit your vote afterward.'))return;const b=$('castBtn');b.disabled=true;const r=await db.rpc('mates_submit_ballot',{p_election:active.id,p_token:token,p_votes:votes});if(r.error){b.disabled=false;msg(r.error.message,'error');return}token=null;verifiedMember=null;$('ballotContent').innerHTML='<div class="notice ok"><strong>Thank you!</strong> Your five votes were recorded successfully. Results will be shown after the election closes.</div>';msg('Ballot submitted successfully.','ok')}}
-async function showResults(){const r=await db.rpc('mates_results',{p_election:active.id});if(r.error){$('ballotContent').textContent=r.error.message;return}const data=r.data||[];let html='<div class="notice ok">Voting has closed. Final results are shown below.</div>';for(const p of currentPositions){const counts=data.filter(x=>x.position===p),total=counts.reduce((a,x)=>a+Number(x.votes),0);html+='<div class="question"><h3>'+esc(p)+'</h3><p class="muted small">'+total+' ballots</p>';for(const m of roster){const n=Number(counts.find(x=>x.candidate_id===m.id)?.votes||0),pc=total?100*n/total:0;html+='<div class="chart"><div class="chartline"><strong>'+esc(m.first_name)+'</strong><span>'+n+' votes · '+pc.toFixed(1)+'%</span></div><div class="track"><div class="fill" style="width:'+pc+'%"></div></div></div>'}html+='</div>'}$('ballotContent').innerHTML=html}
+const positionWeights={
+ 'President':100,
+ 'Secretary':80,
+ 'Vice President':75,
+ 'Joint Secretary':60,
+ 'Treasurer':40
+};
+async function showResults(){
+ const response=await db.rpc('mates_results',{p_election:active.id});
+ if(response.error){$('ballotContent').textContent=response.error.message;return}
+ const data=response.data||[];
+ const totals=Object.fromEntries(currentPositions.map(pos=>[
+   pos,data.filter(row=>row.position===pos).reduce((sum,row)=>sum+Number(row.votes||0),0)
+ ]));
+ const weightSum=currentPositions.reduce((sum,pos)=>sum+(positionWeights[pos]??0),0);
+ const scored=roster.map(member=>{
+   let score=0,rawPoints=0;
+   for(const pos of currentPositions){
+     const weight=positionWeights[pos]??0;
+     const votes=Number(data.find(row=>row.position===pos&&row.candidate_id===member.id)?.votes||0);
+     rawPoints+=votes*weight;
+     if(totals[pos]>0)score+=weight*100*votes/totals[pos];
+   }
+   return {...member,score:weightSum>0?score/weightSum:0,rawPoints};
+ }).sort((a,b)=>b.score-a.score||a.first_name.localeCompare(b.first_name));
+ let out='<div class="notice ok">Voting has closed. Final results are shown below.</div>';
+ if(weightSum>0){
+   const applied=currentPositions.filter(p=>(positionWeights[p]??0)>0);
+   const ignored=currentPositions.filter(p=>!(positionWeights[p]>0));
+   out+='<section class="results-overall" aria-label="Overall weighted ranking"><div class="results-kicker">Combined candidate ranking</div><h2>Overall weighted result</h2><p class="muted">A larger score indicates greater combined support across the weighted committee positions. Each position is weighted by its share of votes.</p>';
+   out+='<p class="results-weight-note"><strong>Position weights:</strong> '+applied.map(p=>esc(p)+' '+positionWeights[p]).join(' · ')+'</p>';
+   if(ignored.length)out+='<p class="notice">Unweighted positions are excluded from the combined ranking: '+ignored.map(esc).join(', ')+'</p>';
+   if(currentPositions.every(pos=>totals[pos]===0))out+='<div class="notice">No ballots were submitted. All overall scores are zero.</div>';
+   for(const [index,member] of scored.entries()){
+     const pct=Math.max(0,Math.min(100,member.score));
+     out+='<div class="chart '+(index===0?'overall-first':'')+'"><div class="chartline"><strong>'+(index+1)+'. '+esc(member.first_name)+'</strong><span>'+member.score.toFixed(2)+' / 100</span></div><div class="track" role="img" aria-label="'+esc(member.first_name)+': '+member.score.toFixed(2)+' out of 100"><div class="fill" style="width:'+pct.toFixed(3)+'%"></div></div></div>';
+   }
+   out+='</section>';
+ }else{
+   out+='<div class="notice">No weights have been assigned to these positions. The individual vote results are shown below.</div>';
+ }
+ out+='<section class="results-breakdown"><h2>Results by position</h2><p class="muted">Smaller charts show the votes and share received by each candidate for every position.</p><div class="result-small-grid">';
+ for(const pos of currentPositions){
+   const total=totals[pos];
+   out+='<div class="question"><div class="results-topline"><h3>'+esc(pos)+'</h3><span class="tag">'+total+' votes</span></div>';
+   for(const member of roster){
+     const votes=Number(data.find(row=>row.position===pos&&row.candidate_id===member.id)?.votes||0);
+     const share=total>0?100*votes/total:0;
+     out+='<div class="chart"><div class="chartline"><strong>'+esc(member.first_name)+'</strong><span>'+votes+' · '+share.toFixed(1)+'%</span></div><div class="track"><div class="fill" style="width:'+share.toFixed(3)+'%"></div></div></div>';
+   }
+   out+='</div>';
+ }
+ out+='</div></section>';
+ $('ballotContent').innerHTML=out;
+}
 function displayElections(){if(!elections.length){$('electionList').innerHTML='<div class="card"><h3>No committee election published yet</h3><p class="muted">An administrator can set a start and end date and publish the election after the member roster has been loaded.</p></div>';return}$('electionList').innerHTML=elections.map(e=>'<div class="card"><div class="controls"><span class="tag '+status(e).toLowerCase()+'">'+status(e)+'</span><span class="small muted">Closes '+esc(fmt(e.ends_at))+'</span></div><h3 style="margin:17px 0 8px">'+esc(e.title)+'</h3><p class="muted">Registered members · Executive positions · One ballot per member</p><button class="btn" data-elec="'+esc(e.id)+'">'+(status(e)==='Closed'?'View bar-chart results':'Open voting panel')+'</button><button class="btn secondary" data-copy="'+esc(e.id)+'">Copy voting link</button></div>').join('');document.querySelectorAll('[data-elec]').forEach(b=>b.onclick=()=>chooseElection(elections.find(e=>e.id===b.dataset.elec)));document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const url=new URL('mates.html',location.href);url.searchParams.set('election',b.dataset.copy);try{await navigator.clipboard.writeText(url.href);msg('Voting link copied.','ok')}catch(e){window.prompt('Copy this voting link:',url.href)}})}
 async function load(){renderRoster();if(!db){selectPreview();$('adminToggle').disabled=true;$('electionList').innerHTML='<div class="card"><h3>MATES EC Committee Election</h3><p class="muted">Nine eligible members competing for President, Secretary, Vice President, Joint Secretary and Treasurer.</p><span class="tag">Preview only — database setup required</span></div>';return}
 $('noSetup').classList.add('hidden');$('preview').classList.add('hidden');
