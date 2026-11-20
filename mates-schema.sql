@@ -47,12 +47,12 @@ drop policy if exists mates_elections_public on public.mates_elections;
 create policy mates_elections_public on public.mates_elections for select to anon,authenticated using(true);
 
 create or replace function public.mates_member_names()
-returns table(id uuid,first_name text) language sql stable security definer set search_path=public,pg_temp as $$
+returns table(id uuid,first_name text) language sql stable security definer set search_path=public,extensions,pg_temp as $$
  select m.id,m.first_name from public.mates_members m order by m.first_name;
 $$;
 
 create or replace function public.mates_create_election(p_title text,p_starts timestamptz,p_ends timestamptz)
-returns uuid language plpgsql security definer set search_path=public,pg_temp as $$
+returns uuid language plpgsql security definer set search_path=public,extensions,pg_temp as $$
 declare e uuid;
 begin
  if auth.uid() is null or not exists(select 1 from public.poll_admins where user_id=auth.uid()) then
@@ -70,7 +70,7 @@ end; $$;
 -- Returns an ephemeral token, not the phone PIN. Maximum 5 failed attempts
 -- per member during a one-hour lock window.
 create or replace function public.mates_verify_member(p_election uuid,p_member uuid,p_last4 text)
-returns text language plpgsql volatile security definer set search_path=public,pg_temp as $$
+returns text language plpgsql volatile security definer set search_path=public,extensions,pg_temp as $$
 declare m public.mates_members%rowtype; tok text;
 begin
  if not exists(select 1 from public.mates_elections where id=p_election
@@ -97,7 +97,7 @@ begin
 end; $$;
 
 create or replace function public.mates_ballot_status(p_election uuid,p_token text)
-returns boolean language plpgsql stable security definer set search_path=public,pg_temp as $$
+returns boolean language plpgsql stable security definer set search_path=public,extensions,pg_temp as $$
 declare mid uuid;
 begin
  select s.member_id into mid from public.mates_sessions s
@@ -108,7 +108,7 @@ begin
 end; $$;
 
 create or replace function public.mates_submit_ballot(p_election uuid,p_token text,p_votes jsonb)
-returns void language plpgsql volatile security definer set search_path=public,pg_temp as $$
+returns void language plpgsql volatile security definer set search_path=public,extensions,pg_temp as $$
 declare mid uuid; rec jsonb;
 begin
  perform 1 from public.mates_elections where id=p_election and starts_at<=now()
@@ -137,7 +137,7 @@ end; $$;
 
 create or replace function public.mates_results(p_election uuid)
 returns table(position text,candidate_id uuid,votes bigint)
-language plpgsql stable security definer set search_path=public,pg_temp as $$
+language plpgsql stable security definer set search_path=public,extensions,pg_temp as $$
 begin
  if not exists(select 1 from public.mates_elections where id=p_election and ends_at<=now()) then
   raise exception 'Results are unavailable until voting closes'; end if;
