@@ -73,7 +73,7 @@ $('adminForm').onsubmit=async ev=>{
  if(!db||!adminToken){publishFeedback('Verify as Masrur first.');return}
  if(roster.length<3){publishFeedback('Cannot publish with only '+roster.length+' registered member(s). Add at least 3 members. For the MATES election, register all 9 members first.');return}
  const starts=new Date($('eStart').value),ends=new Date($('eEnd').value);
- const titles=$('ePositions').value.split('\\n').map(x=>x.trim()).filter(Boolean);
+ const titles=$('ePositions').value.split(String.fromCharCode(10)).map(x=>x.trim()).filter(Boolean);
  if(!Number.isFinite(+starts)||!Number.isFinite(+ends)||ends<=starts||ends<=new Date()){
    publishFeedback('Choose valid voting dates. The closing time must be in the future and later than the opening time.');return
  }
