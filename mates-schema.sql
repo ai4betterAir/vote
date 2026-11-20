@@ -234,3 +234,153 @@ revoke all on function public.mates_admin_sign_out(text) from public,anon,authen
 grant execute on function public.mates_admin_verify(text) to anon,authenticated;
 grant execute on function public.mates_create_election_admin(text,text,timestamptz,timestamptz) to anon,authenticated;
 grant execute on function public.mates_admin_sign_out(text) to anon,authenticated;
+
+-- Dynamic administrator-managed member roster and executive positions.
+create table if not exists public.mates_positions(
+ election_id uuid not null references public.mates_elections(id) on delete cascade,
+ title text not null,
+ sort_order integer not null,
+ primary key(election_id,title),
+ unique(election_id,sort_order)
+);
+alter table public.mates_positions enable row level security;
+drop policy if exists mates_positions_public on public.mates_positions;
+create policy mates_positions_public on public.mates_positions for select to anon,authenticated using(true);
+revoke all on public.mates_positions from anon,authenticated;
+grant select on public.mates_positions to anon,authenticated;
+
+-- Add or update a member's verification digits from the administrator console.
+-- The four digits never appear in the public source or member-list response.
+create or replace function public.mates_admin_save_member(
+ p_token text,p_first_name text,p_last4 text,p_member uuid default null
+) returns uuid language plpgsql volatile security definer
+set search_path=public,extensions,pg_temp as $$
+declare member_id uuid;
+begin
+ if not exists(
+   select 1 from public.mates_admin_sessions s
+   join public.mates_members a on a.id=s.member_id
+   where s.token_hash=encode(digest(coalesce(p_token,''),'sha256'),'hex')
+   and s.expires_at>now() and a.first_name='Masrur'
+ ) then raise exception 'Admin session expired'; end if;
+ if char_length(btrim(coalesce(p_first_name,''))) not between 2 and 60
+   or p_last4 is null or p_last4 !~ '^[0-9]{4}$'
+ then raise exception 'Provide a valid name and exactly four digits'; end if;
+ if p_member is null then
+   insert into public.mates_members(first_name,pin_hash)
+   values(btrim(p_first_name),crypt(p_last4,gen_salt('bf',10)))
+   returning id into member_id;
+ else
+   if not exists(select 1 from public.mates_members where id=p_member) then
+     raise exception 'Member not found'; end if;
+   -- No name or phone change after ballots reference this member during a live election.
+   if exists(select 1 from public.mates_ballots where member_id=p_member)
+    or exists(select 1 from public.mates_elections where starts_at<=now() and ends_at>now()) then
+     raise exception 'Member records cannot be edited during active elections or after voting'; end if;
+   update public.mates_members set first_name=btrim(p_first_name),
+      pin_hash=crypt(p_last4,gen_salt('bf',10)),
+      failed_attempts=0,locked_until=null where id=p_member;
+   member_id:=p_member;
+ end if;
+ return member_id;
+end; $$;
+
+create or replace function public.mates_admin_delete_member(p_token text,p_member uuid)
+returns void language plpgsql volatile security definer
+set search_path=public,extensions,pg_temp as $$
+begin
+ if not exists(select 1 from public.mates_admin_sessions s
+   join public.mates_members a on a.id=s.member_id
+   where s.token_hash=encode(digest(coalesce(p_token,''),'sha256'),'hex')
+   and s.expires_at>now() and a.first_name='Masrur'
+ ) then raise exception 'Admin session expired'; end if;
+ if exists(select 1 from public.mates_members where id=p_member and first_name='Masrur') then
+  raise exception 'Cannot delete the designated administrator'; end if;
+ if exists(select 1 from public.mates_elections where starts_at<=now()) then
+  raise exception 'Member deletion is disabled once an election has started'; end if;
+ delete from public.mates_members where id=p_member;
+end; $$;
+
+-- The client uses this new signature with a configurable list of positions.
+create or replace function public.mates_create_election_admin(
+ p_token text,p_title text,p_starts timestamptz,p_ends timestamptz,p_positions text[]
+) returns uuid language plpgsql volatile security definer
+set search_path=public,extensions,pg_temp as $$
+declare new_id uuid; i int;
+begin
+ if not exists(select 1 from public.mates_admin_sessions s
+   join public.mates_members a on a.id=s.member_id
+   where s.token_hash=encode(digest(coalesce(p_token,''),'sha256'),'hex')
+   and s.expires_at>now() and a.first_name='Masrur') then
+   raise exception 'Administrator verification expired'; end if;
+ if char_length(btrim(coalesce(p_title,''))) not between 3 and 120
+   or p_starts is null or p_ends is null or p_ends<=p_starts or p_ends<=now()
+   or coalesce(array_length(p_positions,1),0) not between 1 and 20
+ then raise exception 'Invalid election title, dates or positions'; end if;
+ if (select count(distinct lower(btrim(t))) from unnest(p_positions) t)<>array_length(p_positions,1)
+   or exists(select 1 from unnest(p_positions) t where char_length(btrim(coalesce(t,''))) not between 2 and 70)
+ then raise exception 'Position titles must be unique and nonempty'; end if;
+ if (select count(*) from public.mates_members)<3 then raise exception 'Add at least three members before publishing'; end if;
+ insert into public.mates_elections(title,starts_at,ends_at)
+ values(btrim(p_title),p_starts,p_ends) returning id into new_id;
+ for i in 1..array_length(p_positions,1) loop
+   insert into public.mates_positions(election_id,title,sort_order)
+   values(new_id,btrim(p_positions[i]),i);
+ end loop;
+ return new_id;
+end; $$;
+
+create or replace function public.mates_submit_ballot(p_election uuid,p_token text,p_votes jsonb)
+returns void language plpgsql volatile security definer
+set search_path=public,extensions,pg_temp as $$
+declare mid uuid; rec jsonb; expected int;
+begin
+ perform 1 from public.mates_elections where id=p_election and starts_at<=now()
+ and ends_at>now() for share;
+ if not found then raise exception 'Election is not open'; end if;
+ select s.member_id into mid from public.mates_sessions s
+ where s.election_id=p_election and s.token_hash=encode(digest(coalesce(p_token,''),'sha256'),'hex')
+ and s.expires_at>now() for update;
+ if mid is null then raise exception 'Verification expired'; end if;
+ select count(*) into expected from public.mates_positions where election_id=p_election;
+ if jsonb_typeof(p_votes) is distinct from 'array' or jsonb_array_length(p_votes)<>expected
+   or expected=0 then raise exception 'One vote is required for every position'; end if;
+ if (select count(distinct v->>'position') from jsonb_array_elements(p_votes) v)<>expected then
+  raise exception 'Every position must be answered once'; end if;
+ if exists(select 1 from public.mates_ballots where election_id=p_election and member_id=mid) then
+  raise exception 'You have already voted'; end if;
+ for rec in select value from jsonb_array_elements(p_votes) loop
+  if not exists(select 1 from public.mates_positions p
+    where p.election_id=p_election and p.title=rec->>'position')
+    or not exists(select 1 from public.mates_members c where c.id::text=rec->>'candidate_id')
+    or rec->>'candidate_id'=mid::text
+  then raise exception 'Invalid candidate, position or self-vote'; end if;
+  insert into public.mates_ballots(election_id,member_id,position,candidate_id)
+  values(p_election,mid,rec->>'position',(rec->>'candidate_id')::uuid);
+ end loop;
+ delete from public.mates_sessions where token_hash=encode(digest(p_token,'sha256'),'hex');
+end; $$;
+
+create or replace function public.mates_results(p_election uuid)
+returns table(position text,candidate_id uuid,votes bigint)
+language plpgsql stable security definer set search_path=public,extensions,pg_temp as $$
+begin
+ if not exists(select 1 from public.mates_elections where id=p_election and ends_at<=now()) then
+  raise exception 'Results are unavailable until closing'; end if;
+ return query
+ select p.title,m.id,count(b.candidate_id)::bigint
+ from public.mates_positions p cross join public.mates_members m
+ left join public.mates_ballots b on b.election_id=p_election
+   and b.position=p.title and b.candidate_id=m.id
+ where p.election_id=p_election
+ group by p.title,m.id;
+end; $$;
+
+-- Disable legacy fixed-five-post and email-admin entrypoints.
+revoke execute on function public.mates_create_election_admin(text,text,timestamptz,timestamptz) from public,anon,authenticated;
+revoke all on function public.mates_admin_save_member(text,text,text,uuid) from public,anon,authenticated;
+revoke all on function public.mates_admin_delete_member(text,uuid) from public,anon,authenticated;
+revoke all on function public.mates_create_election_admin(text,text,timestamptz,timestamptz,text[]) from public,anon,authenticated;
+grant execute on function public.mates_admin_save_member(text,text,text,uuid) to anon,authenticated;
+grant execute on function public.mates_admin_delete_member(text,uuid) to anon,authenticated;
+grant execute on function public.mates_create_election_admin(text,text,timestamptz,timestamptz,text[]) to anon,authenticated;
