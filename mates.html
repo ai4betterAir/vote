@@ -28,7 +28,7 @@ Treasurer</textarea></div><button class="btn" type="submit">Publish election</bu
 </main><footer>OpenPoll · Committee Election · Voting results become public after closing</footer>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
-const config={url:'SUPABASE_URL_HERE',anonKey:'SUPABASE_ANON_KEY_HERE'};
+const config={url:'https://icdbowlocgwbksstritz.supabase.co',anonKey:'sb_publishable_bcu3N8yM7L1WFo5gcwTJ9A_d4frQDwX'};
 const db=config.url.startsWith('https://')&&!config.url.includes('HERE')&&!config.anonKey.includes('HERE')?createClient(config.url,config.anonKey):null;
 const fallback=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];
 const positions=['President','Secretary','Vice President','Joint Secretary','Treasurer'];
