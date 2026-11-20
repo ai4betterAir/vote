@@ -27,13 +27,13 @@ create table if not exists public.mates_sessions(
 create table if not exists public.mates_ballots(
  election_id uuid not null references public.mates_elections(id),
  member_id uuid not null references public.mates_members(id),
- position text not null check(position in ('President','Secretary','Vice President','Joint Secretary','Treasurer')),
+ "position" text not null check("position" in ('President','Secretary','Vice President','Joint Secretary','Treasurer')),
  candidate_id uuid not null references public.mates_members(id),
  created_at timestamptz not null default now(),
- primary key(election_id,member_id,position),
+ primary key(election_id,member_id,"position"),
  check(member_id<>candidate_id)
 );
-create index if not exists mates_ballot_count_idx on public.mates_ballots(election_id,position,candidate_id);
+create index if not exists mates_ballot_count_idx on public.mates_ballots(election_id,"position",candidate_id);
 create index if not exists mates_session_expire_idx on public.mates_sessions(expires_at);
 
 alter table public.mates_members enable row level security;
@@ -129,14 +129,14 @@ begin
     or not exists(select 1 from public.mates_members c where c.id::text=rec->>'candidate_id')
     or rec->>'candidate_id'=mid::text then
     raise exception 'Invalid selection or self-vote'; end if;
-  insert into public.mates_ballots(election_id,member_id,position,candidate_id)
+  insert into public.mates_ballots(election_id,member_id,"position",candidate_id)
   values(p_election,mid,rec->>'position',(rec->>'candidate_id')::uuid);
  end loop;
  delete from public.mates_sessions where token_hash=encode(digest(p_token,'sha256'),'hex');
 end; $$;
 
 create or replace function public.mates_results(p_election uuid)
-returns table(position text,candidate_id uuid,votes bigint)
+returns table("position" text,candidate_id uuid,votes bigint)
 language plpgsql stable security definer set search_path=public,extensions,pg_temp as $$
 begin
  if not exists(select 1 from public.mates_elections where id=p_election and ends_at<=now()) then
@@ -146,7 +146,7 @@ begin
  from unnest(array['President','Secretary','Vice President','Joint Secretary','Treasurer']) p(pos)
  cross join public.mates_members m
  left join public.mates_ballots b on b.election_id=p_election
- and b.position=p.pos and b.candidate_id=m.id
+ and b."position"=p.pos and b.candidate_id=m.id
  group by p.pos,m.id;
 end; $$;
 
@@ -355,14 +355,14 @@ begin
     or not exists(select 1 from public.mates_members c where c.id::text=rec->>'candidate_id')
     or rec->>'candidate_id'=mid::text
   then raise exception 'Invalid candidate, position or self-vote'; end if;
-  insert into public.mates_ballots(election_id,member_id,position,candidate_id)
+  insert into public.mates_ballots(election_id,member_id,"position",candidate_id)
   values(p_election,mid,rec->>'position',(rec->>'candidate_id')::uuid);
  end loop;
  delete from public.mates_sessions where token_hash=encode(digest(p_token,'sha256'),'hex');
 end; $$;
 
 create or replace function public.mates_results(p_election uuid)
-returns table(position text,candidate_id uuid,votes bigint)
+returns table("position" text,candidate_id uuid,votes bigint)
 language plpgsql stable security definer set search_path=public,extensions,pg_temp as $$
 begin
  if not exists(select 1 from public.mates_elections where id=p_election and ends_at<=now()) then
@@ -371,7 +371,7 @@ begin
  select p.title,m.id,count(b.candidate_id)::bigint
  from public.mates_positions p cross join public.mates_members m
  left join public.mates_ballots b on b.election_id=p_election
-   and b.position=p.title and b.candidate_id=m.id
+   and b."position"=p.title and b.candidate_id=m.id
  where p.election_id=p_election
  group by p.title,m.id;
 end; $$;
@@ -389,7 +389,7 @@ grant execute on function public.mates_create_election_admin(text,text,timestamp
 alter table public.mates_ballots drop constraint if exists mates_ballots_position_check;
 alter table public.mates_ballots drop constraint if exists mates_ballots_election_id_position_fkey;
 alter table public.mates_ballots add constraint mates_ballots_election_id_position_fkey
- foreign key(election_id,position) references public.mates_positions(election_id,title);
+ foreign key(election_id,"position") references public.mates_positions(election_id,title);
 -- Freeze member addition once an election starts, preserving the electorate.
 create or replace function public.mates_admin_save_member(
  p_token text,p_first_name text,p_last4 text,p_member uuid default null
