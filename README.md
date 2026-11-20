@@ -1,41 +1,70 @@
-# CommitteeVote
+# OpenPoll — flexible polling website
 
-Executive committee election website for GitHub Pages. Positions can share the same candidates. Signed-in approved voters submit exactly one complete ballot per election. Results are only available in horizontal bar charts once the poll closes.
+Public website: https://ai4betterair.github.io/vote/
 
-## Publishing on GitHub Pages
-1. Go to **Settings → Pages** in [this repository](https://github.com/ai4betterAir/vote).
-2. Choose **Deploy from a branch**, **main**, **/(root)**, and save.
-3. The site URL is **https://ai4betterair.github.io/vote/**.
+OpenPoll is a general-purpose poll creator hosted on GitHub Pages. Polls can be about MATES EC Committee elections, other committees, events, preferences or surveys. No organisation logo or name is hard-coded.
 
-## Setting up secure voting
-GitHub Pages hosts only static files. Supabase stores votes and enforces closing times.
+## Features
+- General-purpose homepage with **Create Poll**.
+- Custom poll name and description.
+- Start and closing time (entered in Sydney local time).
+- Multiple questions, each with its **own** independent list of answer choices.
+- Manual question builder: add/remove questions and choices.
+- **JSON import and export** for creating structured polls programmatically.
+- Email sign-in; administrator approval and voter email allowlist.
+- One complete submission per voter per poll.
+- Results only after the deadline, displayed as horizontal **bar charts** by question.
 
-1. Create a Supabase project: https://supabase.com/dashboard
-2. In **SQL Editor**, execute the entire [schema.sql](schema.sql).
-3. Under **Authentication → Providers**, enable Email / Magic Link.
-4. In **Authentication → URL Configuration**, set Site URL to `https://ai4betterair.github.io/vote/` and add that URL to Redirect URLs.
-5. In **Project Settings → API**, copy the **Project URL** and the **publishable (anon) key**. Edit `index.html` to replace `SUPABASE_URL_HERE` and `SUPABASE_ANON_KEY_HERE`. A publishable/anon key is safe for browser use; **never expose a service role/secret key**.
-6. Sign in to the website once with the intended administrator email. Then execute:
+## Publish on GitHub Pages
+In repository **Settings → Pages**, select **GitHub Actions** as the source. The included workflow deploys `index.html` from the `main` branch.
+
+## Enable real voting
+The website and poll design preview work without a backend, but a Supabase project is required for **publishing, voting and authentic results**.
+
+1. Create a Supabase project at https://supabase.com/dashboard .
+2. Open Supabase **SQL Editor** and execute [schema.sql](schema.sql) (this creates `polls`, `poll_questions`, `poll_options`, `poll_responses`, `poll_admins` and `poll_voters`).
+3. Enable Supabase **Authentication → Providers → Email**. Enable email magic links.
+4. In **Authentication → URL Configuration**, set Site URL and add Redirect URL: `https://ai4betterair.github.io/vote/`.
+5. Copy Supabase **Project URL** and the **publishable/anon key** into `index.html` at the `config` object (`SUPABASE_URL_HERE`, `SUPABASE_ANON_KEY_HERE`). **Never publish the service_role key**.
+6. Sign in once with the email to be used by your administrator, then run:
    ```sql
-   insert into public.election_admins(user_id)
-   select id from auth.users where email='ADMIN_EMAIL@example.com'
+   insert into public.poll_admins(user_id)
+   select id from auth.users where email='admin@example.com'
    on conflict do nothing;
    ```
-   Sign out/in, then the **Create poll** button will appear.
-7. Add authorised voters in Supabase SQL Editor:
+   Replace the example email. Sign out and back in.
+7. Authorise members using:
    ```sql
-   insert into public.voter_allowlist(email)
-   values ('voter1@example.com'),('voter2@example.com')
+   insert into public.poll_voters(email) values
+   ('member1@example.com'),('member2@example.com')
    on conflict do nothing;
    ```
-8. Create a poll on the website, using Sydney local time. Members sign in with their authorised email to vote.
+8. Build your poll on the website and press **Publish poll**.
 
-## Election rules
+## Creating polls manually
+Select **Create Poll**, type a title such as `MATES EC Committee Election`, choose opening/closing dates, then add question titles like `President`, `Vice President` and `Secretary`. Under each question, add the appropriate names. You may use the same names for multiple questions or different choices entirely.
 
-- Every candidate appears for every position. One candidate must be selected per position.
-- One complete ballot per verified, allowlisted email account; database uniqueness prevents duplicates even during concurrent requests.
-- Browser-side counts are not used; results are fetched from a server-side function that checks the closing time.
-- Results are expressed as vote counts and percentages for each position. No voter identities or individual choices are exposed to other voters.
-- The demo/initial site does **not** support changing ballots after submission, poll editing, multi-seat positions, or ranked-choice voting.
-- Email verification confirms access to a mailbox, not a person's identity. Administrators should keep the allowlist controlled.
-- For highly consequential or anonymous secret-ballot elections, seek an independently audited election service: administrators of this database can inspect individual votes.
+## Creating polls with JSON
+Choose **Create Poll → Import JSON**, paste the following and click **Apply JSON**. Review schedule fields before publishing.
+
+```json
+{
+  "title": "MATES EC Committee Election",
+  "description": "Choose executive committee members.",
+  "questions": [
+    {"title": "President", "options": ["Candidate A", "Candidate B", "Candidate C"]},
+    {"title": "Vice President", "options": ["Candidate A", "Candidate B", "Candidate C"]},
+    {"title": "Treasurer", "options": ["Candidate D", "Candidate E", "Candidate F"]}
+  ]
+}
+```
+
+**Export poll JSON** saves your unfinished design locally as a JSON file. Polls are currently single-choice per question.
+
+## Important limitations
+- Polls cannot be edited after publishing in this version. Check question text and close times first.
+- All polls are publicly listed; only allowlisted, signed-in email holders can vote.
+- The database, not browser time, checks closing deadlines and prevents early result access.
+- Administrator access to database records is **not** the same as secret-ballot anonymity; database administrators can potentially link a vote to its voter. Do not use this as an independently audited or anonymous election system.
+- Emails can be approved in the allowlist, but this does not independently verify a voter's offline identity.
+- Creating any poll is restricted to configured administrators; if no administrator is configured, you can still design and export a poll JSON.
