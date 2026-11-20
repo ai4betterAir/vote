@@ -52,15 +52,55 @@
 .turnout-person .tag{background:#e1f8ed;color:#0d7355}
 .turnout-privacy{font-size:13px;line-height:1.65;color:#62798d;margin:13px 0 0}
 @media(max-width:670px){.mates-hero-inner{align-items:flex-start;gap:14px}.mates-hero-logo{width:88px;height:75px}.vote-success strong{font-size:16px}.turnout-heading h3{font-size:19px}}
+
+/* OpenPoll · MATES redesigned election page */
+:root{color:#142f4b;background:#f5f8fb}
+header{background:#082a49;border-bottom:1px solid #1c4d6a}
+.brand{color:#fff;font-size:24px;letter-spacing:-.8px}
+.brand b{background:#078f87;color:#fff;border-radius:10px}
+.nav .btn.secondary{background:transparent;color:#e6f9fc;border-color:#5d899c}
+.nav{min-height:77px}
+.mates-hero{background:radial-gradient(circle at 92% 25%,#6ee6d53b,transparent 32%),linear-gradient(112deg,#092d4f,#105477);padding:44px 0 47px}
+.mates-hero-inner{gap:30px}
+.mates-hero-logo{width:164px;height:126px;padding:14px;border:1px solid #e6eeeb;border-radius:20px;background:#fff}
+.mates-hero h1{font-size:clamp(27px,3.7vw,41px);line-height:1.17;letter-spacing:-1.2px}
+.mates-hero .eyebrow{color:#91e7d4}
+main.wrap{padding-top:26px}
+.panel,.card{box-shadow:0 12px 32px #0629420c;border-radius:18px;border-color:#d8e5ec}
+#elections{margin:16px 0 28px}
+#elections>.controls h2{font-size:27px}
+#electionList{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+#electionList .card{margin:0;background:linear-gradient(130deg,#fff,#f2fbf8)}
+#electionList .btn{margin:7px 8px 4px 0}
+#registeredMembers{margin-top:30px}
+#rosterDisplay{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+#rosterDisplay .option{background:#fff;border-color:#dfebf0;font-size:14px}
+#ballot{margin-top:14px}
+#ballot>.panel{padding:clamp(22px,3.1vw,36px)}
+#chosenElection{font-size:clamp(24px,3vw,34px);letter-spacing:-.6px}
+#ballotContent #verifyForm{max-width:720px;padding:23px 26px;background:linear-gradient(145deg,#f4fcfa,#fff);border:1px solid #cee8e2;border-radius:15px;margin:22px 0}
+#ballotContent #verifyForm>h3{font-size:23px;margin:0 0 18px}
+#ballotContent .field input,#ballotContent .field select{max-width:100%;background:#fff}
+#ballotContent #verifyBtn,#ballotContent #castBtn{background:linear-gradient(90deg,#0b8d80,#03a394);padding:14px 20px}
+#ballotContent #castForm .question{background:#fcfeff;border-color:#dfebf0}
+#ballotContent #castForm .option{transition:background .14s,border-color .14s}
+#ballotContent #castForm .option:has(input:checked){background:#e8faf5;border-color:#0a9a89}
+.election-subnav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:15px 0}
+.election-fact{display:inline-flex;align-items:center;gap:7px;background:#e9f7f4;border:1px solid #d0e7e1;border-radius:99px;padding:8px 13px;font-size:13px;font-weight:750;color:#176f66}
+#homeTurnoutPanel{margin:20px 0 28px}
+.mates-app-version{font-size:11px;color:#b8cfe0;letter-spacing:.4px}
+.turnout-person{background:#fff}
+.turnout-panel{border:1px solid #cddfe8;background:#fff}
+@media(max-width:700px){.mates-hero{padding:29px 0}.mates-hero-inner{gap:13px}.mates-hero-logo{width:94px;height:82px;padding:6px}.mates-hero h1{font-size:26px}.nav{flex-wrap:wrap;gap:5px;padding:11px 0}.brand{font-size:20px}#ballot>.panel{padding:17px}#ballotContent #verifyForm{padding:17px}}
 </style></head><body>
-<header><div class="wrap nav"><a class="brand" href="./"><b>✓</b> OpenPoll</a><a class="btn secondary" href="./" style="text-decoration:none">All polls</a></div></header>
-<section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation · Executive Committee Election</h1><p>Select your name, verify the final four digits of your registered phone number, and vote for one candidate for each executive committee position. You cannot vote for yourself.</p></div></div></section>
+<header><div class="wrap nav"><a class="brand" href="./"><b>✓</b> OpenPoll</a><a class="btn secondary" href="./?v=6" style="text-decoration:none">Explore all polls</a></div></header>
+<section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation<br><span style="color:#7ae4d2">Executive Committee Election</span></h1><p>Nine approved members · Five executive positions · One private ballot per person. Select your name, verify your details and cast your vote.</p><span class="mates-app-version">Official MATES Foundation election portal · Updated interface</span></div></div></section>
 <main class="wrap"><div id="globalMsg" role="status"></div>
 <div id="noSetup" class="notice">Live voting is not enabled. Configure Supabase and load the private member verification data before sharing this page with voters. The ballot layout can be previewed below.</div>
-<section class="panel" id="registeredMembers"><div class="controls"><h2 style="margin:0">Eligible members & candidates</h2><span class="tag">9 members</span></div><p class="muted small">All nine members are eligible to vote and stand for each position. Only first names are shown publicly; registered phone details stay private.</p><div id="rosterDisplay" class="options"></div></section>
-<section id="elections"><div class="controls"><h2 style="margin-right:auto">Election</h2><button class="btn secondary" id="adminToggle">Admin: Create election</button></div><div id="electionList"></div></section>
+
+<section id="elections"><div class="controls"><h2 style="margin-right:auto">Election</h2><button class="btn secondary" id="adminToggle">Admin: Create election</button></div><div id="electionList"></div><div id="homeTurnoutPanel" class="hidden"></div></section>
 <section id="admin" class="panel hidden">
-<h2>Administrator — Masrur</h2><p class="muted">Verify with the final four digits of your registered phone number to unlock member management and election settings.</p>
+<h2>Administrator — Masrur</h2><p class="muted">Verify with the final four digits of your registered phone number to unlock election settings.</p>
 <form id="adminVerifyForm"><div class="field"><label>Administrator</label><input value="Masrur" disabled></div><div class="field"><label for="adminPin">Last four registered phone digits</label><input id="adminPin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="••••" required></div><button class="btn" id="adminVerifyBtn">Verify as Admin</button></form>
 <div id="adminControls" class="hidden"><div class="notice ok">Verified as Masrur. Admin access lasts 20 minutes.</div><button class="btn secondary" type="button" id="adminSignOut">Lock admin panel</button>
 <h2 style="margin-top:28px">1. Approved members</h2><p class="muted">These nine voters and candidates are pre-registered. Nobody needs to register or add a name.</p><div id="adminRoster"></div><p id="memberCountNote" class="notice"></p><h2 style="margin-top:31px">2. Create election</h2><p class="muted">Choose a title, times and the executive positions. All eligible members will be candidates for each position except themselves.</p>
@@ -72,7 +112,8 @@ Vice President
 Joint Secretary
 Treasurer</textarea></div><button class="btn" type="submit" id="publishElectionBtn">Publish election</button><div id="publishMessage" role="status" aria-live="polite"></div></form>
 </div><p class="muted small">Five unsuccessful verification attempts temporarily lock the account. The site does not send an SMS code.</p></section>
-<section id="ballot" class="hidden"><div class="panel"><div class="controls"><button class="btn secondary" id="backBtn">← Elections</button><span id="electionState" class="tag"></span></div><h2 id="chosenElection" style="margin-top:21px"></h2><p id="schedule" class="muted small"></p><div id="ballotContent"></div></div><div id="turnoutPanel" class="turnout-panel" aria-live="polite"></div></section>
+<section id="ballot" class="hidden"><div class="panel"><div class="controls"><button class="btn secondary" id="backBtn">← Elections</button><span id="electionState" class="tag"></span></div><h2 id="chosenElection" style="margin-top:21px"></h2><p id="schedule" class="muted small"></p><div class="election-subnav"><span class="election-fact">✓ 9 approved voters</span><span class="election-fact">🔒 Individual choices private</span><span class="election-fact">📊 Results after closing</span></div><div id="ballotContent"></div></div><div id="turnoutPanel" class="turnout-panel" aria-live="polite"></div></section>
+<section class="panel" id="registeredMembers"><div class="controls"><h2 style="margin:0">Eligible members & candidates</h2><span class="tag">9 members</span></div><p class="muted small">All nine members are eligible to vote and stand for each position. Only first names are shown publicly; registered phone details stay private.</p><div id="rosterDisplay" class="options"></div></section>
 <section id="preview" class="panel"><span class="tag">Ballot layout preview</span><h2 style="margin-top:16px">Select your name</h2><p class="muted">These nine first names will be used for identification and candidate choices.</p><div class="field"><label for="previewName">Your name</label><select id="previewName"></select></div><div class="field"><label for="previewLast">Last 4 digits of your registered mobile</label><input id="previewLast" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="off" disabled></div><div class="notice">Preview only. Phone verification and ballot submission are disabled until the database is configured.</div><div id="previewQuestions"></div></section>
 </main><footer>OpenPoll · Committee Election · Voting results become public after closing</footer>
 <script type="module">
@@ -94,13 +135,12 @@ function selectPreview(){$('previewName').innerHTML='<option value="">Choose you
 async function chooseElection(e){history.replaceState(null,'',location.pathname+'?election='+encodeURIComponent(e.id));active=e;token=null;verifiedMember=null;$('ballot').classList.remove('hidden');$('elections').classList.add('hidden');$('preview').classList.add('hidden');$('chosenElection').textContent=e.title;$('schedule').textContent='Opens '+fmt(e.starts_at)+' · Closes '+fmt(e.ends_at)+' (Sydney time)';$('electionState').textContent=status(e);$('electionState').className='tag '+status(e).toLowerCase();window.scrollTo(0,0);if(db){const pr=await db.from('mates_positions').select('title,sort_order').eq('election_id',e.id).order('sort_order');currentPositions=pr.error||!pr.data?.length?[...positions]:pr.data.map(x=>x.title)}renderElection();refreshTurnout()}
 function showElections(){$('ballot').classList.add('hidden');$('elections').classList.remove('hidden');$('preview').classList.toggle('hidden',!!db);$('admin').classList.add('hidden');token=null;verifiedMember=null;window.scrollTo(0,0)}
 
-let turnoutSequence=0;
-async function refreshTurnout(){
- if(!db||!active||status(active)==='Upcoming')return;
- const container=$('turnoutPanel');
- const seq=++turnoutSequence;
- const response=await db.rpc('mates_voter_turnout',{p_election:active.id});
- if(seq!==turnoutSequence||!active)return;
+async function refreshTurnout(election=active,container=$('turnoutPanel')){
+ if(!db||!election||status(election)==='Upcoming')return;
+ const seq=(Number(container.dataset.turnoutSeq)||0)+1;
+ container.dataset.turnoutSeq=String(seq);
+ const response=await db.rpc('mates_voter_turnout',{p_election:election.id});
+ if(Number(container.dataset.turnoutSeq)!==seq)return;
  if(response.error){
    container.innerHTML='<div class="turnout-heading"><h3>Election participation</h3></div><p class="muted">The participation list needs one database update. The organiser should run <strong>ENABLE_MATES_TURNOUT.sql</strong> in Supabase. Individual votes remain unaffected.</p>';
    return;
@@ -108,7 +148,7 @@ async function refreshTurnout(){
  const voters=response.data||[];
  const total=roster.length||9;
  const pct=total?100*voters.length/total:0;
- const isOpen=status(active)==='Open';
+ const isOpen=status(election)==='Open';
  const list=voters.length
   ?voters.map(v=>'<div class="turnout-person"><span class="turnout-avatar" aria-hidden="true">✓</span><strong>'+esc(v.first_name)+'</strong><span class="tag">Voted</span></div>').join('')
   :'<p class="muted">No members have submitted their votes yet.</p>';
@@ -116,6 +156,15 @@ async function refreshTurnout(){
  +'<div class="turnout-stats"><strong>'+voters.length+' of '+total+'</strong><span>approved members have voted · '+pct.toFixed(0)+'% participation</span></div>'
  +'<div class="turnout-track" role="progressbar" aria-label="Election participation" aria-valuenow="'+voters.length+'" aria-valuemin="0" aria-valuemax="'+total+'"><div class="turnout-fill" style="width:'+Math.min(100,pct).toFixed(1)+'%"></div></div>'
  +'<div class="turnout-names">'+list+'</div><p class="turnout-privacy">Only participation status and first names are displayed. Nobody can see which candidates a member selected. Final results are available after voting closes.</p>';
+}
+function showLandingParticipation(){
+ const section=$('homeTurnoutPanel');
+ const election=elections.find(x=>status(x)==='Open')||elections.find(x=>status(x)==='Closed');
+ if(!election){section.classList.add('hidden');return}
+ section.classList.remove('hidden');
+ section.className='turnout-panel';
+ section.innerHTML='<div class="turnout-heading"><h3>Live election participation</h3><span class="turnout-status">Checking turnout…</span></div>';
+ refreshTurnout(election,section);
 }
 function renderElection(){const s=status(active);if(s==='Upcoming'){$('ballotContent').innerHTML='<div class="notice">Voting has not opened. Return at the scheduled start time.</div>';return}if(s==='Closed'){showResults();return}if(!roster.length){$('ballotContent').innerHTML='<div class="notice error">Member roster has not been loaded. Contact the administrator.</div>';return}
 $('ballotContent').innerHTML='<form id="verifyForm"><h3>Step 1 · Verify your identity</h3><div class="field"><label for="voterName">Your name</label><select id="voterName" required><option value="">Select your first name</option>'+roster.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.first_name)+'</option>').join('')+'</select></div><div class="field"><label for="voterPin">Last four digits of your registered phone number</label><input type="password" inputmode="numeric" id="voterPin" required maxlength="4" pattern="[0-9]{4}" autocomplete="off" placeholder="4 digits"></div><div class="notice">Your four digits are checked privately in the database and are never displayed in the public candidate list. Five unsuccessful attempts lock this name for one hour.</div><button class="btn" id="verifyBtn">Verify and continue</button></form><p id="verifyMsg" role="status"></p>';
@@ -186,7 +235,7 @@ async function showResults(){
 function displayElections(){if(!elections.length){$('electionList').innerHTML='<div class="card"><h3>No committee election published yet</h3><p class="muted">An administrator can set a start and end date and publish the election after the member roster has been loaded.</p></div>';return}$('electionList').innerHTML=elections.map(e=>'<div class="card"><div class="controls"><span class="tag '+status(e).toLowerCase()+'">'+status(e)+'</span><span class="small muted">Closes '+esc(fmt(e.ends_at))+'</span></div><h3 style="margin:17px 0 8px">'+esc(e.title)+'</h3><p class="muted">Registered members · Executive positions · One ballot per member</p><button class="btn" data-elec="'+esc(e.id)+'">'+(status(e)==='Closed'?'View bar-chart results':'Open voting panel')+'</button><button class="btn secondary" data-copy="'+esc(e.id)+'">Copy voting link</button></div>').join('');document.querySelectorAll('[data-elec]').forEach(b=>b.onclick=()=>chooseElection(elections.find(e=>e.id===b.dataset.elec)));document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const url=new URL('mates.html',location.href);url.searchParams.set('election',b.dataset.copy);try{await navigator.clipboard.writeText(url.href);msg('Voting link copied.','ok')}catch(e){window.prompt('Copy this voting link:',url.href)}})}
 async function load(){renderRoster();if(!db){selectPreview();$('adminToggle').disabled=true;$('electionList').innerHTML='<div class="card"><h3>MATES EC Committee Election</h3><p class="muted">Nine eligible members competing for President, Secretary, Vice President, Joint Secretary and Treasurer.</p><span class="tag">Preview only — database setup required</span></div>';return}
 $('noSetup').classList.add('hidden');$('preview').classList.add('hidden');
-const [a,b]=await Promise.all([db.rpc('mates_member_names'),db.from('mates_elections').select('id,title,starts_at,ends_at').order('starts_at',{ascending:false})]);if(a.error||b.error){msg('MATES voting database is not configured: '+(a.error?.message||b.error?.message),'error');return}roster=a.data||[];elections=b.data||[];renderRoster();displayElections();
+const [a,b]=await Promise.all([db.rpc('mates_member_names'),db.from('mates_elections').select('id,title,starts_at,ends_at').order('starts_at',{ascending:false})]);if(a.error||b.error){msg('MATES voting database is not configured: '+(a.error?.message||b.error?.message),'error');return}roster=a.data||[];elections=b.data||[];renderRoster();displayElections();showLandingParticipation();
 const id=new URLSearchParams(location.search).get('election');const found=elections.find(x=>x.id===id);if(found)chooseElection(found)}
 function updateAdminRoster(){
  const expected=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];
@@ -229,6 +278,6 @@ setInterval(()=>{
    const current=status(active);
    if($('electionState').textContent!==current){$('electionState').textContent=current;$('electionState').className='tag '+current.toLowerCase();if(current==='Closed')renderElection()}
    refreshTurnout();
- }
+ }else if(elections.length){showLandingParticipation()}
 },15000);
 </script></body></html>
