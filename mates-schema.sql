@@ -384,3 +384,40 @@ revoke all on function public.mates_create_election_admin(text,text,timestamptz,
 grant execute on function public.mates_admin_save_member(text,text,text,uuid) to anon,authenticated;
 grant execute on function public.mates_admin_delete_member(text,uuid) to anon,authenticated;
 grant execute on function public.mates_create_election_admin(text,text,timestamptz,timestamptz,text[]) to anon,authenticated;
+
+-- Dynamic positions replace the earlier fixed-position CHECK.
+alter table public.mates_ballots drop constraint if exists mates_ballots_position_check;
+alter table public.mates_ballots drop constraint if exists mates_ballots_election_id_position_fkey;
+alter table public.mates_ballots add constraint mates_ballots_election_id_position_fkey
+ foreign key(election_id,position) references public.mates_positions(election_id,title);
+-- Freeze member addition once an election starts, preserving the electorate.
+create or replace function public.mates_admin_save_member(
+ p_token text,p_first_name text,p_last4 text,p_member uuid default null
+) returns uuid language plpgsql volatile security definer
+set search_path=public,extensions,pg_temp as $$
+declare member_id uuid;
+begin
+ if not exists(select 1 from public.mates_admin_sessions s
+  join public.mates_members m on m.id=s.member_id
+  where s.token_hash=encode(digest(coalesce(p_token,''),'sha256'),'hex')
+  and s.expires_at>now() and m.first_name='Masrur')
+ then raise exception 'Administrator verification expired'; end if;
+ if char_length(btrim(coalesce(p_first_name,''))) not between 2 and 60
+   or p_last4 is null or p_last4 !~ '^[0-9]{4}$'
+ then raise exception 'Provide a valid first name and exactly four digits'; end if;
+ if exists(select 1 from public.mates_elections where starts_at<=now()) then
+  raise exception 'Member changes are disabled once an election has started'; end if;
+ if p_member is null then
+  insert into public.mates_members(first_name,pin_hash)
+  values(btrim(p_first_name),crypt(p_last4,gen_salt('bf',10)))
+  returning id into member_id;
+ else
+  if not exists(select 1 from public.mates_members where id=p_member) then
+   raise exception 'Member not found'; end if;
+  update public.mates_members set first_name=btrim(p_first_name),
+  pin_hash=crypt(p_last4,gen_salt('bf',10)),failed_attempts=0,locked_until=null
+  where id=p_member;
+  member_id:=p_member;
+ end if;
+ return member_id;
+end; $$;
