@@ -24,9 +24,37 @@
 .result-small-grid .fill{background:linear-gradient(90deg,#638cb8,#9fbee0)}
 .result-small-grid .muted{font-size:12px}
 @media(max-width:720px){.result-small-grid{grid-template-columns:1fr}.results-overall .chartline{font-size:14px}}
+
+/* MATES Foundation official identity and live participation dashboard */
+.wrap{max-width:1150px}
+.mates-hero{background:linear-gradient(115deg,#0a2848 0%,#104368 66%,#147d77 100%);padding:35px 0 38px}
+.mates-hero-inner{display:flex;gap:23px;align-items:center}
+.mates-hero-logo{width:135px;height:102px;object-fit:contain;background:#fff;border-radius:17px;padding:9px;box-shadow:0 12px 30px #08192b35}
+.mates-hero h1{font-size:clamp(24px,3.4vw,37px);margin:6px 0}
+.mates-hero p{margin:6px 0;max-width:760px}
+.mates-logo-inline{height:52px;width:94px;object-fit:contain;vertical-align:middle;margin-right:9px}
+.vote-success{display:flex;align-items:center;gap:17px;background:#e9faf4;border:1px solid #a8e5ca;border-radius:16px;padding:20px 23px;margin:23px 0;color:#135d47}
+.vote-success-icon{width:51px;height:51px;border-radius:50%;display:grid;place-items:center;background:#0c936b;color:white;font-size:26px;font-weight:900;flex-shrink:0}
+.vote-success strong{display:block;font-size:20px}
+.turnout-panel{background:#fff;border:1px solid #d8e5ec;border-radius:18px;padding:clamp(20px,3vw,27px);margin:24px 0;box-shadow:0 8px 27px #082d4910}
+.turnout-heading{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap}
+.turnout-heading h3{font-size:22px;margin:0;color:#0f304f}
+.turnout-status{background:#e3f7f0;color:#09664d;border:1px solid #bce4d4;padding:8px 13px;border-radius:99px;font-weight:800;font-size:13px}
+.turnout-stats{display:flex;align-items:center;gap:17px;flex-wrap:wrap;margin:22px 0 11px}
+.turnout-stats strong{font-size:28px;color:#092e4a}
+.turnout-stats span{font-size:14px;color:#657f90}
+.turnout-track{height:15px;border-radius:20px;background:#e7eff5;overflow:hidden}
+.turnout-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#078f89,#16ba8b);transition:width .35s ease}
+.turnout-names{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin:19px 0 11px}
+.turnout-person{display:flex;align-items:center;gap:11px;border:1px solid #d6e6ed;border-radius:12px;background:#fbfdff;padding:14px}
+.turnout-avatar{border-radius:50%;width:37px;height:37px;display:grid;place-items:center;background:#dff6ee;color:#0a725a;font-size:19px;flex-shrink:0}
+.turnout-person strong{font-size:15px;margin-right:auto}
+.turnout-person .tag{background:#e1f8ed;color:#0d7355}
+.turnout-privacy{font-size:13px;line-height:1.65;color:#62798d;margin:13px 0 0}
+@media(max-width:670px){.mates-hero-inner{align-items:flex-start;gap:14px}.mates-hero-logo{width:88px;height:75px}.vote-success strong{font-size:16px}.turnout-heading h3{font-size:19px}}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand" href="./"><b>✓</b> OpenPoll</a><a class="btn secondary" href="./" style="text-decoration:none">All polls</a></div></header>
-<section class="head"><div class="wrap"><div class="eyebrow">Members-only committee election</div><h1>MATES EC Committee Election</h1><p>Select your name, verify the final four digits of your registered phone number, and vote for one candidate for each executive committee position. You cannot vote for yourself.</p></div></section>
+<section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation · Executive Committee Election</h1><p>Select your name, verify the final four digits of your registered phone number, and vote for one candidate for each executive committee position. You cannot vote for yourself.</p></div></div></section>
 <main class="wrap"><div id="globalMsg" role="status"></div>
 <div id="noSetup" class="notice">Live voting is not enabled. Configure Supabase and load the private member verification data before sharing this page with voters. The ballot layout can be previewed below.</div>
 <section class="panel" id="registeredMembers"><div class="controls"><h2 style="margin:0">Eligible members & candidates</h2><span class="tag">9 members</span></div><p class="muted small">All nine members are eligible to vote and stand for each position. Only first names are shown publicly; registered phone details stay private.</p><div id="rosterDisplay" class="options"></div></section>
@@ -44,7 +72,7 @@ Vice President
 Joint Secretary
 Treasurer</textarea></div><button class="btn" type="submit" id="publishElectionBtn">Publish election</button><div id="publishMessage" role="status" aria-live="polite"></div></form>
 </div><p class="muted small">Five unsuccessful verification attempts temporarily lock the account. The site does not send an SMS code.</p></section>
-<section id="ballot" class="hidden"><div class="panel"><div class="controls"><button class="btn secondary" id="backBtn">← Elections</button><span id="electionState" class="tag"></span></div><h2 id="chosenElection" style="margin-top:21px"></h2><p id="schedule" class="muted small"></p><div id="ballotContent"></div></div></section>
+<section id="ballot" class="hidden"><div class="panel"><div class="controls"><button class="btn secondary" id="backBtn">← Elections</button><span id="electionState" class="tag"></span></div><h2 id="chosenElection" style="margin-top:21px"></h2><p id="schedule" class="muted small"></p><div id="ballotContent"></div></div><div id="turnoutPanel" class="turnout-panel" aria-live="polite"></div></section>
 <section id="preview" class="panel"><span class="tag">Ballot layout preview</span><h2 style="margin-top:16px">Select your name</h2><p class="muted">These nine first names will be used for identification and candidate choices.</p><div class="field"><label for="previewName">Your name</label><select id="previewName"></select></div><div class="field"><label for="previewLast">Last 4 digits of your registered mobile</label><input id="previewLast" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="••••" autocomplete="off" disabled></div><div class="notice">Preview only. Phone verification and ballot submission are disabled until the database is configured.</div><div id="previewQuestions"></div></section>
 </main><footer>OpenPoll · Committee Election · Voting results become public after closing</footer>
 <script type="module">
@@ -63,15 +91,43 @@ function candidatesFor(member){return roster.filter(m=>m.id!==member)}
 function preview(){const selected=$('previewName').value;$('previewQuestions').innerHTML=positions.map((p,i)=>'<div class="question"><h3>'+(i+1)+'. '+p+'</h3><div class="options">'+fallback.filter(x=>x!==selected).map(x=>'<label class="option"><input type="radio" disabled name="prev_'+i+'">'+esc(x)+'</label>').join('')+'</div></div>').join('')}
 function renderRoster(){const names=roster.length?roster.map(m=>m.first_name):fallback;$('rosterDisplay').innerHTML=names.map((name,i)=>'<div class="option" style="cursor:default"><span class="tag">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(name)+'</strong></div>').join('')}
 function selectPreview(){$('previewName').innerHTML='<option value="">Choose your name</option>'+fallback.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');$('previewName').onchange=preview;preview()}
-async function chooseElection(e){history.replaceState(null,'',location.pathname+'?election='+encodeURIComponent(e.id));active=e;token=null;verifiedMember=null;$('ballot').classList.remove('hidden');$('elections').classList.add('hidden');$('preview').classList.add('hidden');$('chosenElection').textContent=e.title;$('schedule').textContent='Opens '+fmt(e.starts_at)+' · Closes '+fmt(e.ends_at)+' (Sydney time)';$('electionState').textContent=status(e);$('electionState').className='tag '+status(e).toLowerCase();window.scrollTo(0,0);if(db){const pr=await db.from('mates_positions').select('title,sort_order').eq('election_id',e.id).order('sort_order');currentPositions=pr.error||!pr.data?.length?[...positions]:pr.data.map(x=>x.title)}renderElection()}
+async function chooseElection(e){history.replaceState(null,'',location.pathname+'?election='+encodeURIComponent(e.id));active=e;token=null;verifiedMember=null;$('ballot').classList.remove('hidden');$('elections').classList.add('hidden');$('preview').classList.add('hidden');$('chosenElection').textContent=e.title;$('schedule').textContent='Opens '+fmt(e.starts_at)+' · Closes '+fmt(e.ends_at)+' (Sydney time)';$('electionState').textContent=status(e);$('electionState').className='tag '+status(e).toLowerCase();window.scrollTo(0,0);if(db){const pr=await db.from('mates_positions').select('title,sort_order').eq('election_id',e.id).order('sort_order');currentPositions=pr.error||!pr.data?.length?[...positions]:pr.data.map(x=>x.title)}renderElection();refreshTurnout()}
 function showElections(){$('ballot').classList.add('hidden');$('elections').classList.remove('hidden');$('preview').classList.toggle('hidden',!!db);$('admin').classList.add('hidden');token=null;verifiedMember=null;window.scrollTo(0,0)}
+
+let turnoutSequence=0;
+async function refreshTurnout(){
+ if(!db||!active||status(active)==='Upcoming')return;
+ const container=$('turnoutPanel');
+ const seq=++turnoutSequence;
+ const response=await db.rpc('mates_voter_turnout',{p_election:active.id});
+ if(seq!==turnoutSequence||!active)return;
+ if(response.error){
+   container.innerHTML='<div class="turnout-heading"><h3>Election participation</h3></div><p class="muted">The participation list needs one database update. The organiser should run <strong>ENABLE_MATES_TURNOUT.sql</strong> in Supabase. Individual votes remain unaffected.</p>';
+   return;
+ }
+ const voters=response.data||[];
+ const total=roster.length||9;
+ const pct=total?100*voters.length/total:0;
+ const isOpen=status(active)==='Open';
+ const list=voters.length
+  ?voters.map(v=>'<div class="turnout-person"><span class="turnout-avatar" aria-hidden="true">✓</span><strong>'+esc(v.first_name)+'</strong><span class="tag">Voted</span></div>').join('')
+  :'<p class="muted">No members have submitted their votes yet.</p>';
+ container.innerHTML='<div class="turnout-heading"><h3>Members who have already voted</h3><span class="turnout-status">'+(isOpen?'● Voting is ongoing':'Voting has closed')+'</span></div>'
+ +'<div class="turnout-stats"><strong>'+voters.length+' of '+total+'</strong><span>approved members have voted · '+pct.toFixed(0)+'% participation</span></div>'
+ +'<div class="turnout-track" role="progressbar" aria-label="Election participation" aria-valuenow="'+voters.length+'" aria-valuemin="0" aria-valuemax="'+total+'"><div class="turnout-fill" style="width:'+Math.min(100,pct).toFixed(1)+'%"></div></div>'
+ +'<div class="turnout-names">'+list+'</div><p class="turnout-privacy">Only participation status and first names are displayed. Nobody can see which candidates a member selected. Final results are available after voting closes.</p>';
+}
 function renderElection(){const s=status(active);if(s==='Upcoming'){$('ballotContent').innerHTML='<div class="notice">Voting has not opened. Return at the scheduled start time.</div>';return}if(s==='Closed'){showResults();return}if(!roster.length){$('ballotContent').innerHTML='<div class="notice error">Member roster has not been loaded. Contact the administrator.</div>';return}
 $('ballotContent').innerHTML='<form id="verifyForm"><h3>Step 1 · Verify your identity</h3><div class="field"><label for="voterName">Your name</label><select id="voterName" required><option value="">Select your first name</option>'+roster.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.first_name)+'</option>').join('')+'</select></div><div class="field"><label for="voterPin">Last four digits of your registered phone number</label><input type="password" inputmode="numeric" id="voterPin" required maxlength="4" pattern="[0-9]{4}" autocomplete="off" placeholder="4 digits"></div><div class="notice">Your four digits are checked privately in the database and are never displayed in the public candidate list. Five unsuccessful attempts lock this name for one hour.</div><button class="btn" id="verifyBtn">Verify and continue</button></form><p id="verifyMsg" role="status"></p>';
-$('verifyForm').onsubmit=async ev=>{ev.preventDefault();const mid=$('voterName').value,pin=$('voterPin').value;if(!mid||!/^[0-9]{4}$/.test(pin))return;const b=$('verifyBtn');b.disabled=true;const r=await db.rpc('mates_verify_member',{p_election:active.id,p_member:mid,p_last4:pin});b.disabled=false;$('voterPin').value='';if(r.error||!r.data){$('verifyMsg').textContent='Verification failed or temporarily locked. Check your name and four digits, or contact the election administrator.';return}token=r.data;verifiedMember=mid;const check=await db.rpc('mates_ballot_status',{p_election:active.id,p_token:token});if(check.error){$('verifyMsg').textContent=check.error.message;return}if(check.data){$('ballotContent').innerHTML='<div class="notice ok">Your vote has already been recorded. You cannot submit another ballot for this election.</div>';return}renderVotingForm()}}
+$('verifyForm').onsubmit=async ev=>{ev.preventDefault();const mid=$('voterName').value,pin=$('voterPin').value;if(!mid||!/^[0-9]{4}$/.test(pin))return;const b=$('verifyBtn');b.disabled=true;const r=await db.rpc('mates_verify_member',{p_election:active.id,p_member:mid,p_last4:pin});b.disabled=false;$('voterPin').value='';if(r.error||!r.data){$('verifyMsg').textContent='Verification failed or temporarily locked. Check your name and four digits, or contact the election administrator.';return}token=r.data;verifiedMember=mid;const check=await db.rpc('mates_ballot_status',{p_election:active.id,p_token:token});if(check.error){$('verifyMsg').textContent=check.error.message;return}if(check.data){showVoteConfirmation(true);refreshTurnout();return}renderVotingForm()}}
+
+function showVoteConfirmation(previouslySubmitted){
+ $('ballotContent').innerHTML='<section class="vote-success"><span class="vote-success-icon" aria-hidden="true">✓</span><div><strong>'+(previouslySubmitted?'Your ballot was already recorded.':'Your vote has been submitted successfully.')+'</strong><div>'+(previouslySubmitted?'You cannot submit another ballot for this election.':'Your selections are final and cannot be changed after submission.')+'</div><p class="small" style="margin:5px 0 0">Voting may still be ongoing. You can follow turnout below without seeing anyone’s selections.</p></div></section>';
+}
 function renderVotingForm(){const name=roster.find(m=>m.id===verifiedMember)?.first_name||'';let html='<div class="notice ok">Identity verified as '+esc(name)+'. You cannot select yourself as a candidate.</div><h3>Step 2 · Vote for each position</h3><form id="castForm">';
 for(const [i,p] of currentPositions.entries()){html+='<div class="question"><h3>'+(i+1)+'. '+esc(p)+'</h3><div class="options">'+candidatesFor(verifiedMember).map(m=>'<label class="option"><input type="radio" name="position_'+i+'" required value="'+esc(m.id)+'">'+esc(m.first_name)+'</label>').join('')+'</div></div>'}
 html+='<div class="notice">Check all five choices before submission. A ballot can only be submitted once.</div><button class="btn" id="castBtn" type="submit">Submit final ballot</button></form>';
-$('ballotContent').innerHTML=html;$('castForm').onsubmit=async e=>{e.preventDefault();const votes=currentPositions.map((position,i)=>({position,candidate_id:document.querySelector('[name="position_'+i+'"]:checked')?.value}));if(votes.some(x=>!x.candidate_id))return;if(!confirm('Submit your final ballot for all five positions? You cannot edit your vote afterward.'))return;const b=$('castBtn');b.disabled=true;const r=await db.rpc('mates_submit_ballot',{p_election:active.id,p_token:token,p_votes:votes});if(r.error){b.disabled=false;msg(r.error.message,'error');return}token=null;verifiedMember=null;$('ballotContent').innerHTML='<div class="notice ok"><strong>Thank you!</strong> Your five votes were recorded successfully. Results will be shown after the election closes.</div>';msg('Ballot submitted successfully.','ok')}}
+$('ballotContent').innerHTML=html;$('castForm').onsubmit=async e=>{e.preventDefault();const votes=currentPositions.map((position,i)=>({position,candidate_id:document.querySelector('[name="position_'+i+'"]:checked')?.value}));if(votes.some(x=>!x.candidate_id))return;if(!confirm('Submit your final ballot for all five positions? You cannot edit your vote afterward.'))return;const b=$('castBtn');b.disabled=true;const r=await db.rpc('mates_submit_ballot',{p_election:active.id,p_token:token,p_votes:votes});if(r.error){b.disabled=false;msg(r.error.message,'error');return}token=null;verifiedMember=null;showVoteConfirmation(false);await refreshTurnout();msg('Ballot submitted successfully.','ok')}}
 const positionWeights={
  'President':100,
  'Secretary':80,
@@ -168,4 +224,11 @@ $('adminForm').onsubmit=async ev=>{
  finally{button.disabled=false}
 };
 await load();
+setInterval(()=>{
+ if(active&&!$('ballot').classList.contains('hidden')){
+   const current=status(active);
+   if($('electionState').textContent!==current){$('electionState').textContent=current;$('electionState').className='tag '+current.toLowerCase();if(current==='Closed')renderElection()}
+   refreshTurnout();
+ }
+},15000);
 </script></body></html>
