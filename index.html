@@ -23,7 +23,7 @@
 <footer class="footer">OpenPoll · Create questions, collect votes and display timed results · Hosted on GitHub Pages</footer>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
-const config={url:'SUPABASE_URL_HERE',anonKey:'SUPABASE_ANON_KEY_HERE'};
+const config={url:'https://icdbowlocgwbksstritz.supabase.co',anonKey:'sb_publishable_bcu3N8yM7L1WFo5gcwTJ9A_d4frQDwX'};
 const configured=config.url.startsWith('https://')&&!config.url.includes('HERE')&&!config.anonKey.includes('HERE');
 const db=configured?createClient(config.url,config.anonKey):null;
 let user=null,admin=false,polls=[],selected=null,questions=[{title:'',options:['','']}];
