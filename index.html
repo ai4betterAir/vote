@@ -36,11 +36,67 @@ header{background:#082849;border-bottom:1px solid #17486f}
 .home-step h3{margin:14px 0 8px;font-size:18px}.home-step p{margin:0;color:#627a8b;font-size:14px;line-height:1.6}
 @media(max-width:900px){.mates-feature{grid-template-columns:120px 1fr}.mates-feature img{width:120px;height:103px}.mates-feature .btn{grid-column:2;justify-self:start}.illustration{display:none}.hero-layout{grid-template-columns:1fr}}
 @media(max-width:660px){.mates-feature{grid-template-columns:1fr;padding:20px!important;gap:12px}.mates-feature img{width:120px;height:75px;border:0;padding:0}.mates-feature .btn{grid-column:1}.home-workflow{grid-template-columns:1fr}.hero-layout{min-height:0;padding:46px 0 74px}}
+
+/* November design implementation: approved light homepage concept */
+:root{background:#f6f9fc;color:#0b2b48}
+header{background:#0b2e51;border:0;box-shadow:0 2px 12px #0c243519}
+.nav{min-height:70px}
+.brand{color:#fff;font-size:24px}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:transparent;border:3px solid #15c9be;color:#e7fffd;font-size:24px;line-height:1}
+.nav-actions{gap:8px}
+.nav-anchor{padding:11px 13px;color:#dff2fa;font-size:14px;font-weight:700;text-decoration:none;border-radius:9px}
+.nav-anchor:hover,.nav-anchor:focus-visible{background:#ffffff17;color:#fff}
+.nav .btn.secondary{background:transparent;color:#fff;border-color:transparent}
+.nav .btn{padding:10px 16px;background:#fff;color:#113653;border-color:#fff;font-size:13px}
+.nav .btn:hover{color:#fff}
+.hero{background:radial-gradient(circle at 85% 10%,#abeeee79,transparent 34%),radial-gradient(circle at 82% 94%,#9ae6dc65,transparent 30%),linear-gradient(120deg,#fff 20%,#f6fcfd 74%,#e8f6fa 100%);color:#0a2a48}
+.hero-layout{padding:45px 0 56px;grid-template-columns:1.02fr 0.98fr;min-height:360px;gap:25px}
+.hero h1{font-size:clamp(39px,4.8vw,60px);font-weight:900;line-height:1.1;margin:12px 0 18px;letter-spacing:-2px}
+.hero h1 em{color:#067f77}
+.hero .eyebrow{color:#0a8178}
+.hero p{color:#49647a;line-height:1.68;font-size:17px;max-width:520px}
+.hero .btn,.hero-buttons .btn{background:#008c82;color:white;border:1px solid #008c82;box-shadow:0 7px 18px #06877a22}
+.hero .btn.secondary{color:#0b3857;background:white;border-color:#0b7186;box-shadow:none}
+.hero .btn:hover{background:#026e68}
+.hero .btn.secondary:hover{color:#fff}
+.illustration{width:100%;max-width:540px;justify-self:center;padding:0;transform:none;box-shadow:none;border:0;background:transparent;backdrop-filter:none}
+.ballot-art{position:relative;display:grid;place-items:center;height:300px;isolation:isolate}
+.ballot-art:before{content:"";position:absolute;inset:28px 18px 7px;background:radial-gradient(ellipse,#99eee3b0,transparent 70%);border-radius:50%;z-index:-1}
+.art-card{position:absolute;width:170px;height:216px;border-radius:19px;padding:18px 17px;background:#fff;box-shadow:0 18px 36px #0d486034;border:1px solid #e3eff5;color:#12344d}
+.art-card strong{font-size:14px}
+.art-card>span{display:block;height:9px;border-radius:9px;background:#e4edf4;margin:17px 5px}
+.art-card>span:nth-child(2){width:83%}.art-card>span:nth-child(3){width:64%}.art-card>span:nth-child(4){width:90%}
+.art-card.left{transform:translate(-117px,12px) rotate(-14deg);background:#f3fbff}
+.art-card.right{transform:translate(113px,14px) rotate(13deg);background:#fffdf3}
+.art-card.main{z-index:2;transform:translate(0,-11px);height:238px;width:185px;padding:22px;background:linear-gradient(170deg,#fff,#faffff)}
+.art-logo{width:55px;height:55px;border-radius:17px;background:#08aaa2;color:#fff;font-weight:900;display:grid;place-items:center;font-size:32px;margin:0 auto 16px}
+.art-card.main strong{display:block;text-align:center;font-size:19px}
+.art-choice{border:1px solid #e3ecf2;border-radius:8px;margin:9px 0;padding:10px;font-size:12px;font-weight:700;color:#45647d}
+.art-choice.active{color:#008a80;background:#e7f9f4;border-color:#abebdb}
+.main{margin-top:0;padding-top:14px}
+.mates-feature{background:linear-gradient(105deg,#fafffd 20%,#ebfaf5 100%);border:1px solid #9edaca!important;border-radius:15px;padding:21px 25px!important;box-shadow:0 9px 22px #0c485717;grid-template-columns:130px minmax(0,1fr) auto;gap:21px}
+.mates-feature img{width:120px;height:90px;object-fit:contain;padding:0 18px 0 0}
+.mates-feature h3{font-size:21px;margin:6px 0 7px}
+.mates-feature .muted{font-size:14px;line-height:1.55}
+.mates-feature .btn{background:#008b81;border-color:#008b81;padding:12px 18px}
+.home-workflow{margin:27px 0 34px;grid-template-columns:repeat(3,1fr);gap:18px}
+.home-step{position:relative;box-shadow:none;border:0;padding:15px 13px 17px 58px;min-height:106px;background:transparent}
+.home-step span{position:absolute;left:0;top:16px;width:44px;height:44px;background:#dbf8ef;font-size:23px}
+.home-step h3{font-size:18px;margin:6px 0 5px}
+.home-step p{font-size:13px;line-height:1.5}
+#listView>.section-title{border-top:1px solid #e0edf1;padding-top:22px}
+@media(max-width:900px){.hero-layout{grid-template-columns:1fr}.illustration{display:grid}.nav-anchor{display:none}.mates-feature{grid-template-columns:115px 1fr}.mates-feature .btn{grid-column:2;justify-self:start}}
+@media(max-width:610px){.hero-layout{padding:35px 0 24px}.ballot-art{height:245px;transform:scale(.75);margin:-18px auto}.hero h1{font-size:39px}.mates-feature{grid-template-columns:90px minmax(0,1fr);gap:12px;padding:16px!important}.mates-feature img{width:82px;height:75px;padding:0}.mates-feature h3{font-size:18px}.mates-feature .btn{grid-column:1 / -1;justify-self:stretch;text-align:center}.home-workflow{grid-template-columns:1fr}.nav-actions{gap:2px}.nav .btn{padding:9px 10px}.brand{font-size:19px}.brand-mark{width:28px;height:28px;font-size:19px}}
 </style></head>
-<body><header><div class="wrap nav"><a class="brand" href="./"><span class="brand-mark">✓</span>OpenPoll</a><div class="nav-actions"><button class="btn secondary" id="homeBtn">Explore polls</button><button class="btn secondary" id="topCreate">Create Poll</button><button class="btn" id="authBtn">Sign in</button></div></div></header>
-<section class="hero" id="hero"><div class="wrap hero-layout"><div><div class="eyebrow">FLEXIBLE ONLINE POLLS</div><h1>Every vote counts.<br><em>Every voice matters.</em></h1><p>From a committee election to a community survey, build your poll with custom questions and answers. Set a closing time, share the link, and reveal results as bar charts when voting ends.</p><div class="hero-buttons"><button class="btn" id="heroCreate">+ Create a poll</button><button class="btn secondary" id="heroExplore">Explore polls</button></div></div><div class="illustration" aria-label="Illustrative ballot"><div class="illustration-head">Your community. Your choice.</div><div class="mini-option">✓ &nbsp; Committee election <span>Secure</span></div><div class="mini-option">○ &nbsp; Community poll <span>Flexible</span></div><div class="mini-option">○ &nbsp; Member survey <span>Simple</span></div><span class="pill">One clear vote at a time</span></div></div></section>
+<body><header><div class="wrap nav"><a class="brand" href="./"><span class="brand-mark">✓</span>OpenPoll</a><div class="nav-actions"><a class="nav-anchor" href="./">Home</a><a class="nav-anchor" href="#homeWorkflow">How it works</a><button class="btn secondary" id="homeBtn">Explore polls</button><button class="btn secondary" id="topCreate">Create poll</button><button class="btn" id="authBtn">Log in</button></div></div></header>
+<section class="hero" id="hero"><div class="wrap hero-layout"><div><div class="eyebrow">SIMPLE · SECURE · FOR EVERY COMMUNITY</div><h1>Every vote counts.<br><em>Every voice matters.</em></h1><p>A simple, secure and fair way to run elections and community polls for your organisation. Create questions, invite voters and follow the outcome.</p><div class="hero-buttons"><button class="btn" id="heroCreate">+ Create a poll</button><button class="btn secondary" id="heroExplore">Explore polls</button></div></div><div class="illustration" role="img" aria-label="Illustration of an election ballot with community survey and feedback cards">
+<div class="ballot-art">
+ <div class="art-card left"><strong>▥ Survey</strong><span></span><span></span><span></span></div>
+ <div class="art-card right"><strong>▤ Feedback</strong><span></span><span></span><span></span></div>
+ <div class="art-card main"><div class="art-logo">✓</div><strong>Election</strong><div class="art-choice">◯ &nbsp; Candidate A</div><div class="art-choice active">◉ &nbsp; Candidate B</div><div class="art-choice">◯ &nbsp; Candidate C</div></div>
+</div></div></div></section>
 <main class="wrap main"><div id="message" role="status"></div>
-<section id="listView"><div class="card mates-feature"><img src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><span class="pill">Featured election · Nine approved members</span><h3>MATES Foundation<br><span>Executive Committee Election</span></h3><p class="muted">Choose your executive representatives across five positions. No registration required: members verify their existing details, vote once and follow participation while voting is open.</p></div><a class="btn" href="./mates.html?v=6">Open MATES election →</a></div><section class="home-workflow" aria-label="How OpenPoll works"><div class="home-step"><span>1</span><h3>Set up your poll</h3><p>Choose your questions, candidates, positions and voting period.</p></div><div class="home-step"><span>2</span><h3>Vote securely</h3><p>Approved members verify their identity and submit one ballot.</p></div><div class="home-step"><span>3</span><h3>Follow progress</h3><p>See participation status while voting is open; final scores after closing.</p></div></section><div class="section-title"><div><h2>Explore polls</h2><div class="muted">Take part in active polls or view results from completed ones.</div></div><button class="btn" id="listCreate">+ Create Poll</button></div><div id="pollList" class="grid"></div></section>
+<section id="listView"><div class="card mates-feature"><img src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><span class="pill">Featured election · Nine approved members</span><h3>MATES Foundation<br><span>Executive Committee Election</span></h3><p class="muted">Choose your executive representatives across five positions. No registration required: members verify their existing details, vote once and follow participation while voting is open.</p></div><a class="btn" href="./mates.html?view=20261121-new">Open MATES election →</a></div><section class="home-workflow" id="homeWorkflow" aria-label="How OpenPoll works"><div class="home-step"><span>1</span><h3>Set up your poll</h3><p>Choose your questions, candidates, positions and voting period.</p></div><div class="home-step"><span>2</span><h3>Vote securely</h3><p>Approved members verify their identity and submit one ballot.</p></div><div class="home-step"><span>3</span><h3>Follow progress</h3><p>See participation status while voting is open; final scores after closing.</p></div></section><div class="section-title"><div><h2>Explore polls</h2><div class="muted">Take part in active polls or view results from completed ones.</div></div><button class="btn" id="listCreate">+ Create Poll</button></div><div id="pollList" class="grid"></div></section>
 <section id="authView" class="hidden"><div class="panel"><button class="back" data-back>← Back</button><h2>Sign in to vote</h2><p class="muted">Receive a secure email sign-in link. A poll administrator can restrict voting to approved email addresses.</p><form id="authForm"><div class="field"><label for="email">Email address</label><input type="email" id="email" required placeholder="you@example.com"></div><button class="btn" type="submit">Send sign-in link</button></form></div></section>
 <section id="createView" class="hidden"><div class="panel"><button class="back" data-back>← Back</button><h2>Create a new poll</h2><p class="muted">Name your poll, enter questions and their answer choices, and select when voting starts and ends. You can build it manually or import JSON.</p><form id="createForm">
 <div class="field"><label for="pollTitle">Poll title</label><input id="pollTitle" required maxlength="120" placeholder="MATES EC Committee Election"></div>
