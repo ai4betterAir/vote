@@ -210,6 +210,18 @@ main.wrap{padding-top:25px}
 .results-grid .results-featured .track{height:10px}
 .results-grid .results-featured .fill{background:linear-gradient(90deg,#007f76,#85dcca)}
 @media(max-width:950px){.results-grid .results-left-stack{gap:17px}}
+
+/* Treasurer is intentionally the last office-results section.
+   Wide screens show it beneath the overall chart, filling the left-column gap.
+   Narrow screens show it AFTER all four other office charts. */
+@media(min-width:951px){
+ .results-grid .results-left-stack{grid-column:1;grid-row:1}
+ .results-grid .results-breakdown{grid-column:2;grid-row:1 / span 2}
+ .results-grid .results-featured{grid-column:1;grid-row:2;align-self:start}
+}
+@media(max-width:950px){
+ .results-grid .results-featured{grid-column:auto;grid-row:auto}
+}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand" href="./"><img class="brand-icon" src="./assets/openpoll-mark.svg" alt="">Open<span class="brand-poll">Poll</span></a><nav class="nav-links" aria-label="Main navigation"><a href="./">Home</a><a href="./#homeWorkflow">How it works</a><a href="./?create=1">Create poll</a></nav><a class="btn secondary" href="./?page=home" style="text-decoration:none">All polls</a></div></header>
 <section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation<br><span style="color:#7ae4d2">Executive Committee Election</span></h1><p>Nine approved members · Five executive positions · One private ballot per person. Select your name, verify your details and cast your vote.</p><span class="mates-app-version">MATES Foundation member election</span></div><span id="heroElectionStatus" class="hero-status" aria-live="polite"></span></div></section>
@@ -525,7 +537,7 @@ async function renderFinalResults(){
  positionsMarkup+='</div></section>';
  $('ballotContent').innerHTML='<div class="notice ok">Voting has closed. Final results are available.</div>'
    +'<div class="results-header"><span class="results-title">MATES Foundation · Final results</span><div class="results-weight-pills" aria-label="Position weights">'+weightPills+'</div></div>'
-   +'<div class="results-grid"><div class="results-left-stack">'+overall+featured+'</div>'+positionsMarkup+'</div>';
+   +'<div class="results-grid"><div class="results-left-stack">'+overall+'</div>'+positionsMarkup+featured+'</div>';
 }
 function displayElections(){
  if(!elections.length){
