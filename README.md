@@ -106,3 +106,15 @@ The initial MATES member list is supplied separately via the private SQL setup; 
 Execute the **latest** [mates-schema.sql](mates-schema.sql) after [schema.sql](schema.sql) and then the private member initialization file. The updated SQL adds the admin PIN-verification functions, an admin member-management API, and custom election positions.
 
 Important: Member names and verification digits cannot be changed once an election has started, to keep the electorate stable. Admin setup cannot go live until the Supabase project URL and publishable key are configured in `mates.html`. The four-digit method is not SMS OTP and is not strong identity proof.
+
+## English / বাংলা committee labels
+
+The MATES voting interface displays bilingual position labels for the five standard posts:
+
+- President / সভাপতি
+- Secretary / সাধারণ সম্পাদক
+- Vice President / সহ-সভাপতি
+- Joint Secretary / যুগ্ম সাধারণ সম্পাদক
+- Treasurer / কোষাধ্যক্ষ
+
+These translations are display-only: the existing English position IDs, vote records, position weights, and Supabase RPC arguments stay unchanged. The member stored as `AbdulAhad` is shown as **Abdul Ahad** everywhere in the MATES interface without changing his verification record. Custom positions retain their original titles.
