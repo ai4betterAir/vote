@@ -220,14 +220,39 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:'Australia/Sydney'}).format(new Date(s));
 const status=e=>Date.now()<new Date(e.starts_at)?'Upcoming':Date.now()<new Date(e.ends_at)?'Open':'Closed';
-let roster=[],elections=[],active=null,token=null,verifiedMember=null,adminToken=null,editingMember=null,currentPositions=[...positions];
+let roster=[],elections=[],active=null,token=null,verifiedMember=null,adminToken=null,editingMember=null,currentPositions=[...positions],lastSubmittedChoices=null;
 function msg(t,type=''){$('globalMsg').innerHTML='<div class="notice '+type+'">'+esc(t)+'</div>';}
 function candidatesFor(member){return roster.filter(m=>m.id!==member)}
 function preview(){const selected=$('previewName').value;$('previewQuestions').innerHTML=positions.map((p,i)=>'<div class="question"><h3>'+(i+1)+'. '+p+'</h3><div class="options">'+fallback.filter(x=>x!==selected).map(x=>'<label class="option"><input type="radio" disabled name="prev_'+i+'">'+esc(x)+'</label>').join('')+'</div></div>').join('')}
 function renderRoster(){const names=roster.length?roster.map(m=>m.first_name):fallback;$('rosterDisplay').innerHTML=names.map((name,i)=>'<div class="option" style="cursor:default"><span class="tag">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(name)+'</strong></div>').join('')}
 function selectPreview(){$('previewName').innerHTML='<option value="">Choose your name</option>'+fallback.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');$('previewName').onchange=preview;preview()}
-async function chooseElection(e){history.replaceState(null,'',location.pathname+'?election='+encodeURIComponent(e.id));active=e;token=null;verifiedMember=null;$('ballot').classList.remove('hidden');$('elections').classList.add('hidden');$('preview').classList.add('hidden');$('chosenElection').textContent=e.title;$('schedule').textContent='Opens '+fmt(e.starts_at)+' · Closes '+fmt(e.ends_at)+' (Sydney time)';$('electionState').textContent=status(e);$('electionState').className='tag '+status(e).toLowerCase();window.scrollTo(0,0);if(db){const pr=await db.from('mates_positions').select('title,sort_order').eq('election_id',e.id).order('sort_order');currentPositions=pr.error||!pr.data?.length?[...positions]:pr.data.map(x=>x.title)}renderElection();refreshTurnout()}
-function showElections(){$('ballot').classList.add('hidden');$('elections').classList.remove('hidden');$('preview').classList.toggle('hidden',!!db);$('admin').classList.add('hidden');token=null;verifiedMember=null;window.scrollTo(0,0)}
+async function chooseElection(e){
+ if(!e)return;
+ history.replaceState(null,'',location.pathname+'?election='+encodeURIComponent(e.id));
+ active=e;token=null;verifiedMember=null;lastSubmittedChoices=null;
+ $('ballot').classList.remove('hidden');$('elections').classList.add('hidden');$('preview').classList.add('hidden');$('registeredMembers').classList.add('hidden');
+ $('chosenElection').textContent=e.title;
+ $('schedule').textContent='Voting opens '+fmt(e.starts_at)+' · Closes '+fmt(e.ends_at)+' (Sydney time)';
+ $('electionState').textContent=status(e);$('electionState').className='tag '+status(e).toLowerCase();
+ updateHeroStatus(e);
+ window.scrollTo(0,0);
+ if(db){
+   const positionsResponse=await db.from('mates_positions').select('title,sort_order').eq('election_id',e.id).order('sort_order');
+   currentPositions=positionsResponse.error||!positionsResponse.data?.length?[...positions]:positionsResponse.data.map(x=>x.title);
+ }
+ renderElection();
+ refreshTurnout();
+}
+function showElections(){
+ $('ballot').classList.add('hidden');$('elections').classList.remove('hidden');
+ $('preview').classList.toggle('hidden',!!db);
+ $('registeredMembers').classList.remove('hidden');$('admin').classList.add('hidden');
+ active=null;token=null;verifiedMember=null;lastSubmittedChoices=null;
+ const highlighted=elections.find(e=>status(e)==='Open')||elections[0];
+ updateHeroStatus(highlighted);
+ history.replaceState(null,'',location.pathname);
+ window.scrollTo(0,0);
+}
 
 async function refreshTurnout(election=active,container=$('turnoutPanel')){
  if(!db||!election||status(election)==='Upcoming')return;
@@ -242,6 +267,7 @@ async function refreshTurnout(election=active,container=$('turnoutPanel')){
  const voters=response.data||[];
  const total=roster.length||9;
  const pct=total?100*voters.length/total:0;
+ const confirmValue=$('confirmTurnoutValue');if(confirmValue&&active?.id===election.id){confirmValue.textContent=voters.length+' of '+total+' members voted · '+pct.toFixed(0)+'%';const bar=$('confirmTurnoutFill');if(bar)bar.style.width=Math.min(100,pct).toFixed(2)+'%';}
  const isOpen=status(election)==='Open';
  const list=voters.length
   ?voters.map(v=>'<div class="turnout-person"><span class="turnout-avatar" aria-hidden="true">✓</span><strong>'+esc(v.first_name)+'</strong><span class="tag">Voted</span></div>').join('')
@@ -260,17 +286,138 @@ function showLandingParticipation(){
  section.innerHTML='<div class="turnout-heading"><h3>Live election participation</h3><span class="turnout-status">Checking turnout…</span></div>';
  refreshTurnout(election,section);
 }
-function renderElection(){const s=status(active);if(s==='Upcoming'){$('ballotContent').innerHTML='<div class="notice">Voting has not opened. Return at the scheduled start time.</div>';return}if(s==='Closed'){showResults();return}if(!roster.length){$('ballotContent').innerHTML='<div class="notice error">Member roster has not been loaded. Contact the administrator.</div>';return}
-$('ballotContent').innerHTML='<form id="verifyForm"><h3>Step 1 · Verify your identity</h3><div class="field"><label for="voterName">Your name</label><select id="voterName" required><option value="">Select your first name</option>'+roster.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.first_name)+'</option>').join('')+'</select></div><div class="field"><label for="voterPin">Last four digits of your registered phone number</label><input type="password" inputmode="numeric" id="voterPin" required maxlength="4" pattern="[0-9]{4}" autocomplete="off" placeholder="4 digits"></div><div class="notice">Your four digits are checked privately in the database and are never displayed in the public candidate list. Five unsuccessful attempts lock this name for one hour.</div><button class="btn" id="verifyBtn">Verify and continue</button></form><p id="verifyMsg" role="status"></p>';
-$('verifyForm').onsubmit=async ev=>{ev.preventDefault();const mid=$('voterName').value,pin=$('voterPin').value;if(!mid||!/^[0-9]{4}$/.test(pin))return;const b=$('verifyBtn');b.disabled=true;const r=await db.rpc('mates_verify_member',{p_election:active.id,p_member:mid,p_last4:pin});b.disabled=false;$('voterPin').value='';if(r.error||!r.data){$('verifyMsg').textContent='Verification failed or temporarily locked. Check your name and four digits, or contact the election administrator.';return}token=r.data;verifiedMember=mid;const check=await db.rpc('mates_ballot_status',{p_election:active.id,p_token:token});if(check.error){$('verifyMsg').textContent=check.error.message;return}if(check.data){showVoteConfirmation(true);refreshTurnout();return}renderVotingForm()}}
-
-function showVoteConfirmation(previouslySubmitted){
- $('ballotContent').innerHTML='<section class="vote-success"><span class="vote-success-icon" aria-hidden="true">✓</span><div><strong>'+(previouslySubmitted?'Your ballot was already recorded.':'Your vote has been submitted successfully.')+'</strong><div>'+(previouslySubmitted?'You cannot submit another ballot for this election.':'Your selections are final and cannot be changed after submission.')+'</div><p class="small" style="margin:5px 0 0">Voting may still be ongoing. You can follow turnout below without seeing anyone’s selections.</p></div></section>';
+function updateStepper(stage){
+ const steps=['Verify identity','Cast your votes','Confirmation'];
+ const root=$('stepper');
+ if(!root)return;
+ root.classList.remove('hidden');
+ root.innerHTML=steps.map((title,i)=>'<div class="workflow-step '+(i+1<stage?'complete':i+1===stage?'current':'')+'"><b>'+(i+1<stage?'✓':i+1)+'</b>'+title+'</div>').join('');
 }
-function renderVotingForm(){const name=roster.find(m=>m.id===verifiedMember)?.first_name||'';let html='<div class="notice ok">Identity verified as '+esc(name)+'. You cannot select yourself as a candidate.</div><h3>Step 2 · Vote for each position</h3><form id="castForm">';
-for(const [i,p] of currentPositions.entries()){html+='<div class="question"><h3>'+(i+1)+'. '+esc(p)+'</h3><div class="options">'+candidatesFor(verifiedMember).map(m=>'<label class="option"><input type="radio" name="position_'+i+'" required value="'+esc(m.id)+'">'+esc(m.first_name)+'</label>').join('')+'</div></div>'}
-html+='<div class="notice">Check all five choices before submission. A ballot can only be submitted once.</div><button class="btn" id="castBtn" type="submit">Submit final ballot</button></form>';
-$('ballotContent').innerHTML=html;$('castForm').onsubmit=async e=>{e.preventDefault();const votes=currentPositions.map((position,i)=>({position,candidate_id:document.querySelector('[name="position_'+i+'"]:checked')?.value}));if(votes.some(x=>!x.candidate_id))return;if(!confirm('Submit your final ballot for all five positions? You cannot edit your vote afterward.'))return;const b=$('castBtn');b.disabled=true;const r=await db.rpc('mates_submit_ballot',{p_election:active.id,p_token:token,p_votes:votes});if(r.error){b.disabled=false;msg(r.error.message,'error');return}token=null;verifiedMember=null;showVoteConfirmation(false);await refreshTurnout();msg('Ballot submitted successfully.','ok')}}
+function updateHeroStatus(e){
+ const hero=$('heroElectionStatus');
+ if(!e){hero.classList.remove('visible');hero.textContent='';return;}
+ const st=status(e);
+ hero.textContent=st==='Open'?'● Voting is currently open':st==='Closed'?'✓ Voting has closed':'◷ Voting opens soon';
+ hero.classList.add('visible');
+}
+function renderElection(){
+ const st=status(active);
+ if(st==='Upcoming'){
+   updateStepper(1);
+   $('ballotContent').innerHTML='<div class="vote-section"><div class="vote-section-head">◷ Election has not opened yet</div><div class="vote-section-body"><p>The ballot will be available from '+esc(fmt(active.starts_at))+' Sydney time. Your name is already on the approved voter list; no registration is required.</p></div></div>';
+   $('turnoutPanel').classList.add('hidden');
+   return;
+ }
+ $('turnoutPanel').classList.remove('hidden');
+ if(st==='Closed'){
+   $('stepper').classList.add('hidden');
+   showResults();
+   return;
+ }
+ if(!roster.length){
+   updateStepper(1);
+   $('ballotContent').innerHTML='<div class="notice error">The approved voter list is not loaded. Please contact the election administrator.</div>';
+   return;
+ }
+ updateStepper(1);
+ const options=roster.map(member=>'<option value="'+esc(member.id)+'">'+esc(member.first_name)+'</option>').join('');
+ const pending=currentPositions.map((position,i)=>'<div class="vote-choice"><label for="previewOption'+i+'">'+esc(position)+'</label><select id="previewOption'+i+'" disabled><option>Verify first to select</option></select></div>').join('');
+ $('ballotContent').innerHTML='<div class="vote-columns">'
+   +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon" aria-hidden="true">◈</span> Verify your identity</div><div class="vote-section-body"><p>Select your name from the nine approved members and enter the final four digits of your registered phone.</p>'
+   +'<form id="verifyForm"><div class="field"><label for="voterName">Your name (approved members)</label><select id="voterName" required><option value="">Select your name</option>'+options+'</select></div>'
+   +'<div class="field"><label for="voterPin">Last four digits of your registered phone</label><input id="voterPin" type="password" required inputmode="numeric" minlength="4" maxlength="4" pattern="[0-9]{4}" autocomplete="off" placeholder="••••"></div>'
+   +'<button class="btn" id="verifyBtn" type="submit">Verify & continue →</button><p id="verifyMsg" role="alert" style="color:#a13e36;margin-top:10px"></p></form></div></section>'
+   +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon" aria-hidden="true">▣</span> Cast your votes</div><div class="vote-section-body"><p>Select one candidate for each executive position. Voting becomes available after verification.</p>'+pending+'<button class="btn" type="button" disabled>✓ Submit my votes</button></div></section></div>'
+   +'<div class="vote-privacy"><span class="lock-emoji" aria-hidden="true">🔒</span><span><b>Your ballot is private.</b> Only approved members can vote. You cannot vote for yourself or submit more than one ballot. Individual choices are not shown on the participation list.</span></div>';
+ $('verifyForm').onsubmit=async ev=>{
+   ev.preventDefault();
+   const memberId=$('voterName').value;
+   const digits=$('voterPin').value;
+   if(!memberId||!/^[0-9]{4}$/.test(digits))return;
+   const btn=$('verifyBtn');btn.disabled=true;
+   const response=await db.rpc('mates_verify_member',{p_election:active.id,p_member:memberId,p_last4:digits});
+   btn.disabled=false;$('voterPin').value='';
+   if(response.error||!response.data){
+     $('verifyMsg').textContent='Verification failed or temporarily locked. Confirm your name and phone digits with the election organiser.';
+     return;
+   }
+   token=response.data;
+   verifiedMember=memberId;
+   const check=await db.rpc('mates_ballot_status',{p_election:active.id,p_token:token});
+   if(check.error){
+     $('verifyMsg').textContent=check.error.message;
+     return;
+   }
+   if(check.data){
+     token=null;verifiedMember=null;lastSubmittedChoices=null;
+     showVoteConfirmation(true);
+     refreshTurnout();
+     return;
+   }
+   renderVotingForm();
+ };
+}
+function renderVotingForm(){
+ updateStepper(2);
+ const member=roster.find(m=>m.id===verifiedMember);
+ const name=member?.first_name||'Member';
+ const choices=currentPositions.map((position,i)=>{
+   const options=candidatesFor(verifiedMember).map(m=>'<option value="'+esc(m.id)+'">'+esc(m.first_name)+'</option>').join('');
+   return '<div class="vote-choice"><label for="voteSelect'+i+'">'+esc(position)+' <span aria-label="required" style="color:#b03d48">*</span></label><select id="voteSelect'+i+'" required><option value="">Select a candidate</option>'+options+'</select></div>';
+ }).join('');
+ $('ballotContent').innerHTML='<div class="vote-columns">'
+   +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon">✓</span> Identity verified</div><div class="vote-section-body"><p>You are voting as an approved MATES Foundation member.</p><div class="notice ok"><b>✓ Verified as '+esc(name)+'</b><div class="small">Your name is excluded from all candidate options.</div></div><p>Choose a candidate for each position on the right. Review carefully; the ballot cannot be changed once submitted.</p><button class="btn secondary" id="switchVoter" type="button">Start verification again</button></div></section>'
+   +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon">▣</span> Cast your votes</div><div class="vote-section-body"><p>Select one candidate for each position.</p><form id="castForm">'+choices+'<p class="small muted">Each position requires one selection. Self-voting is disabled.</p>'
+   +'<p id="castError" role="alert" style="color:#a13e36"></p><button class="btn" id="castBtn" type="submit">✓ Submit my votes</button></form></div></section></div>'
+   +'<div class="vote-privacy"><span class="lock-emoji" aria-hidden="true">🔒</span><span><b>Your selections remain confidential.</b> You may view your own choices immediately after submission. Others only see that you have voted.</span></div>';
+ $('switchVoter').onclick=()=>{token=null;verifiedMember=null;renderElection()};
+ $('castForm').onsubmit=async event=>{
+   event.preventDefault();
+   const votes=currentPositions.map((position,i)=>({position,candidate_id:$('voteSelect'+i)?.value}));
+   if(votes.some(v=>!v.candidate_id)){
+     $('castError').textContent='Please select a candidate for every position.';
+     return;
+   }
+   if(!confirm('Submit your final ballot? Your selections cannot be changed afterwards.'))return;
+   const btn=$('castBtn');btn.disabled=true;
+   const response=await db.rpc('mates_submit_ballot',{p_election:active.id,p_token:token,p_votes:votes});
+   if(response.error){
+     btn.disabled=false;
+     $('castError').textContent=response.error.message;
+     return;
+   }
+   // Keep the user's own choices only in this page's memory. Never store in browser storage.
+   lastSubmittedChoices=votes.map(v=>({position:v.position,first_name:roster.find(m=>m.id===v.candidate_id)?.first_name||''}));
+   token=null;verifiedMember=null;
+   showVoteConfirmation(false);
+   await refreshTurnout();
+   msg('Your ballot was recorded successfully.','ok');
+ };
+}
+function showVoteConfirmation(previouslySubmitted){
+ updateStepper(3);
+ const recorded=!previouslySubmitted && lastSubmittedChoices?.length;
+ let choicesMarkup='';
+ if(recorded){
+   choicesMarkup='<p class="muted" style="font-size:13px">These are the selections you just submitted. They are only shown in this browser session.</p>'
+     +lastSubmittedChoices.map(choice=>'<div class="submitted-line"><span>'+esc(choice.position)+'</span><b>'+esc(choice.first_name)+'</b><em>✓ Submitted</em></div>').join('');
+ }else{
+   choicesMarkup='<p class="muted">Your ballot was securely recorded. Previous selections cannot be retrieved here; this protects the confidentiality of your vote.</p>';
+ }
+ const ended=status(active)==='Closed';
+ $('ballotContent').innerHTML=
+   '<section class="confirm-banner"><span class="confirm-circle">✓</span><div><h3>'+(previouslySubmitted?'Your vote has already been recorded.':'Your vote has been submitted successfully.')+'</h3><p>You cannot change your choices or submit another ballot for this election.</p></div></section>'
+   +'<div class="confirmation-layout">'
+   +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon">▤</span> Your submitted ballot</div><div class="vote-section-body">'+choicesMarkup+'</div></section>'
+   +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon">ⓘ</span> Election information</div><div class="vote-section-body">'
+   +'<div class="confirm-info-row"><span>Eligible members</span><strong>'+roster.length+'</strong></div>'
+   +'<div class="confirm-info-row"><span>Voting closes</span><strong>'+esc(fmt(active.ends_at))+'</strong></div>'
+   +'<div class="confirm-info-row"><span>Election status</span><strong>'+(ended?'Closed':'Voting is ongoing')+'</strong></div>'
+   +'<div class="confirm-info-row"><span>Privacy</span><strong>Candidate choices confidential</strong></div>'
+   +'<h3 style="margin:23px 0 9px">Voting progress</h3><p id="confirmTurnoutValue" class="muted">Loading current participation…</p>'
+   +'<div class="turnout-track"><div id="confirmTurnoutFill" class="turnout-fill" style="width:0"></div></div>'
+   +'</div></section></div>';
+}
 const positionWeights={
  'President':100,
  'Secretary':80,
@@ -278,58 +425,78 @@ const positionWeights={
  'Joint Secretary':60,
  'Treasurer':40
 };
-async function showResults(){
- const response=await db.rpc('mates_results',{p_election:active.id});
- if(response.error){$('ballotContent').textContent=response.error.message;return}
- const data=response.data||[];
- const totals=Object.fromEntries(currentPositions.map(pos=>[
-   pos,data.filter(row=>row.position===pos).reduce((sum,row)=>sum+Number(row.votes||0),0)
- ]));
- const weightSum=currentPositions.reduce((sum,pos)=>sum+(positionWeights[pos]??0),0);
- const scored=roster.map(member=>{
-   let score=0,rawPoints=0;
-   for(const pos of currentPositions){
-     const weight=positionWeights[pos]??0;
-     const votes=Number(data.find(row=>row.position===pos&&row.candidate_id===member.id)?.votes||0);
-     rawPoints+=votes*weight;
-     if(totals[pos]>0)score+=weight*100*votes/totals[pos];
-   }
-   return {...member,score:weightSum>0?score/weightSum:0,rawPoints};
- }).sort((a,b)=>b.score-a.score||a.first_name.localeCompare(b.first_name));
- let out='<div class="notice ok">Voting has closed. Final results are shown below.</div>';
- if(weightSum>0){
-   const applied=currentPositions.filter(p=>(positionWeights[p]??0)>0);
-   const ignored=currentPositions.filter(p=>!(positionWeights[p]>0));
-   out+='<section class="results-overall" aria-label="Overall weighted ranking"><div class="results-kicker">Combined candidate ranking</div><h2>Overall weighted result</h2><p class="muted">A larger score indicates greater combined support across the weighted committee positions. Each position is weighted by its share of votes.</p>';
-   out+='<p class="results-weight-note"><strong>Position weights:</strong> '+applied.map(p=>esc(p)+' '+positionWeights[p]).join(' · ')+'</p>';
-   if(ignored.length)out+='<p class="notice">Unweighted positions are excluded from the combined ranking: '+ignored.map(esc).join(', ')+'</p>';
-   if(currentPositions.every(pos=>totals[pos]===0))out+='<div class="notice">No ballots were submitted. All overall scores are zero.</div>';
-   for(const [index,member] of scored.entries()){
-     const pct=Math.max(0,Math.min(100,member.score));
-     out+='<div class="chart '+(index===0?'overall-first':'')+'"><div class="chartline"><strong>'+(index+1)+'. '+esc(member.first_name)+'</strong><span>'+member.score.toFixed(2)+' / 100</span></div><div class="track" role="img" aria-label="'+esc(member.first_name)+': '+member.score.toFixed(2)+' out of 100"><div class="fill" style="width:'+pct.toFixed(3)+'%"></div></div></div>';
-   }
-   out+='</section>';
- }else{
-   out+='<div class="notice">No weights have been assigned to these positions. The individual vote results are shown below.</div>';
- }
- out+='<section class="results-breakdown"><h2>Results by position</h2><p class="muted">Smaller charts show the votes and share received by each candidate for every position.</p><div class="result-small-grid">';
- for(const pos of currentPositions){
-   const total=totals[pos];
-   out+='<div class="question"><div class="results-topline"><h3>'+esc(pos)+'</h3><span class="tag">'+total+' votes</span></div>';
-   for(const member of roster){
-     const votes=Number(data.find(row=>row.position===pos&&row.candidate_id===member.id)?.votes||0);
-     const share=total>0?100*votes/total:0;
-     out+='<div class="chart"><div class="chartline"><strong>'+esc(member.first_name)+'</strong><span>'+votes+' · '+share.toFixed(1)+'%</span></div><div class="track"><div class="fill" style="width:'+share.toFixed(3)+'%"></div></div></div>';
-   }
-   out+='</div>';
- }
- out+='</div></section>';
- $('ballotContent').innerHTML=out;
+function showResults(){
+ return renderFinalResults();
 }
-function displayElections(){if(!elections.length){$('electionList').innerHTML='<div class="card"><h3>No committee election published yet</h3><p class="muted">An administrator can set a start and end date and publish the election after the member roster has been loaded.</p></div>';return}$('electionList').innerHTML=elections.map(e=>'<div class="card"><div class="controls"><span class="tag '+status(e).toLowerCase()+'">'+status(e)+'</span><span class="small muted">Closes '+esc(fmt(e.ends_at))+'</span></div><h3 style="margin:17px 0 8px">'+esc(e.title)+'</h3><p class="muted">Registered members · Executive positions · One ballot per member</p><button class="btn" data-elec="'+esc(e.id)+'">'+(status(e)==='Closed'?'View bar-chart results':'Open voting panel')+'</button><button class="btn secondary" data-copy="'+esc(e.id)+'">Copy voting link</button></div>').join('');document.querySelectorAll('[data-elec]').forEach(b=>b.onclick=()=>chooseElection(elections.find(e=>e.id===b.dataset.elec)));document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{const url=new URL('mates.html',location.href);url.searchParams.set('election',b.dataset.copy);try{await navigator.clipboard.writeText(url.href);msg('Voting link copied.','ok')}catch(e){window.prompt('Copy this voting link:',url.href)}})}
+async function renderFinalResults(){
+ const response=await db.rpc('mates_results',{p_election:active.id});
+ if(response.error){
+   $('ballotContent').innerHTML='<div class="notice error">'+esc(response.error.message)+'</div>';
+   return;
+ }
+ const data=response.data||[];
+ const totals=Object.fromEntries(currentPositions.map(position=>[
+   position,data.filter(x=>x.position===position).reduce((sum,x)=>sum+Number(x.votes||0),0)
+ ]));
+ const weightSum=currentPositions.reduce((sum,p)=>sum+(positionWeights[p]||0),0);
+ const ranked=roster.map(member=>{
+   let total=0;
+   for(const position of currentPositions){
+     const votes=Number(data.find(x=>x.position===position&&x.candidate_id===member.id)?.votes||0);
+     const share=totals[position]>0?votes/totals[position]*100:0;
+     total+=share*(positionWeights[position]||0);
+   }
+   return {name:member.first_name,score:weightSum?total/weightSum:0};
+ }).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name));
+ const weightPills=currentPositions.map(position=>'<span>'+esc(position)+' '+(positionWeights[position]||'—')+'</span>').join('');
+ let overall='<section class="results-overall" aria-label="Overall weighted scores"><h2>▥ Overall weighted results (out of 100)</h2>';
+ if(!weightSum)overall+='<div class="notice">No position weights configured.</div>';
+ if(!data.some(r=>Number(r.votes)>0))overall+='<p class="muted" style="padding:0 17px">No ballots were recorded during this election.</p>';
+ for(const [index,row] of ranked.entries()){
+   const pc=Math.max(0,Math.min(100,row.score));
+   overall+='<div class="chart"><span class="result-rank '+(index===0?'first':'')+'">'+(index+1)+'</span>'
+     +'<div class="chartline"><strong>'+esc(row.name)+'</strong><span>'+row.score.toFixed(1)+'</span></div>'
+     +'<div class="track" role="img" aria-label="'+esc(row.name)+': '+row.score.toFixed(1)+' out of 100"><div class="fill" style="width:'+pc.toFixed(2)+'%"></div></div></div>';
+ }
+ overall+='<div class="results-note">Score = weighted average of each candidate’s percentage vote share across the executive positions. These are combined support scores, not votes for a single office.</div></section>';
+ let positionsMarkup='<section class="results-breakdown"><h2>▥ Position-wise results</h2><div class="result-small-grid">';
+ for(const position of currentPositions){
+   const total=totals[position]||0;
+   const counts=roster.map(m=>({name:m.first_name,votes:Number(data.find(x=>x.position===position&&x.candidate_id===m.id)?.votes||0)})).sort((a,b)=>b.votes-a.votes||a.name.localeCompare(b.name));
+   positionsMarkup+='<div class="question"><div class="results-topline"><h3>'+esc(position)+'</h3><span class="tag">'+total+' votes</span></div>';
+   for(const row of counts){
+     const pc=total?100*row.votes/total:0;
+     positionsMarkup+='<div class="chart"><div class="chartline"><strong>'+esc(row.name)+'</strong><span>'+row.votes+' ('+pc.toFixed(1)+'%)</span></div><div class="track"><div class="fill" style="width:'+pc.toFixed(2)+'%"></div></div></div>';
+   }
+   positionsMarkup+='</div>';
+ }
+ positionsMarkup+='</div></section>';
+ $('ballotContent').innerHTML='<div class="notice ok">Voting has closed. Final results are available.</div>'
+   +'<div class="results-header"><span class="results-title">MATES Foundation · Final results</span><div class="results-weight-pills" aria-label="Position weights">'+weightPills+'</div></div>'
+   +'<div class="results-grid">'+overall+positionsMarkup+'</div>';
+}
+function displayElections(){
+ if(!elections.length){
+   $('electionList').innerHTML='<div class="card"><span class="tag">Awaiting election</span><h3>MATES Foundation Executive Committee Election</h3><p class="muted">The administrator will publish the election dates. The nine approved members do not need to register.</p></div>';
+   return;
+ }
+ $('electionList').innerHTML=elections.map(e=>{
+   const state=status(e);
+   return '<div class="card"><div class="controls"><span class="tag '+state.toLowerCase()+'">'+(state==='Open'?'● Voting open':state==='Closed'?'✓ Election closed':'◷ Upcoming')+'</span><span class="small muted">Closes '+esc(fmt(e.ends_at))+'</span></div>'
+     +'<h3>'+esc(e.title)+'</h3><p class="muted">Nine approved members · One ballot per person · Private choices</p><button class="btn" data-elec="'+esc(e.id)+'">'+(state==='Closed'?'View final results':state==='Upcoming'?'Election information':'Go to voting →')+'</button> '
+     +'<button class="btn secondary" data-copy="'+esc(e.id)+'">Copy election link</button></div>';
+ }).join('');
+ document.querySelectorAll('[data-elec]').forEach(button=>button.onclick=()=>chooseElection(elections.find(e=>e.id===button.dataset.elec)));
+ document.querySelectorAll('[data-copy]').forEach(button=>button.onclick=async()=>{
+   const url=new URL('mates.html',location.href);url.searchParams.set('election',button.dataset.copy);
+   try{await navigator.clipboard.writeText(url.href);msg('Election link copied.','ok')}
+   catch{window.prompt('Copy this link:',url.href)}
+ });
+}
+
 async function load(){renderRoster();if(!db){selectPreview();$('adminToggle').disabled=true;$('electionList').innerHTML='<div class="card"><h3>MATES EC Committee Election</h3><p class="muted">Nine eligible members competing for President, Secretary, Vice President, Joint Secretary and Treasurer.</p><span class="tag">Preview only — database setup required</span></div>';return}
 $('noSetup').classList.add('hidden');$('preview').classList.add('hidden');
-const [a,b]=await Promise.all([db.rpc('mates_member_names'),db.from('mates_elections').select('id,title,starts_at,ends_at').order('starts_at',{ascending:false})]);if(a.error||b.error){msg('MATES voting database is not configured: '+(a.error?.message||b.error?.message),'error');return}roster=a.data||[];elections=b.data||[];renderRoster();displayElections();showLandingParticipation();
+const [a,b]=await Promise.all([db.rpc('mates_member_names'),db.from('mates_elections').select('id,title,starts_at,ends_at').order('starts_at',{ascending:false})]);if(a.error||b.error){msg('MATES voting database is not configured: '+(a.error?.message||b.error?.message),'error');return}roster=a.data||[];elections=b.data||[];renderRoster();displayElections();showLandingParticipation();updateHeroStatus(elections.find(e=>status(e)==='Open')||elections[0]);
 const id=new URLSearchParams(location.search).get('election');const found=elections.find(x=>x.id===id);if(found)chooseElection(found)}
 function updateAdminRoster(){
  const expected=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];
@@ -370,7 +537,7 @@ await load();
 setInterval(()=>{
  if(active&&!$('ballot').classList.contains('hidden')){
    const current=status(active);
-   if($('electionState').textContent!==current){$('electionState').textContent=current;$('electionState').className='tag '+current.toLowerCase();if(current==='Closed')renderElection()}
+   if($('electionState').textContent!==current){$('electionState').textContent=current;$('electionState').className='tag '+current.toLowerCase();updateHeroStatus(active);if(current==='Closed')renderElection()}
    refreshTurnout();
  }else if(elections.length){showLandingParticipation()}
 },15000);
