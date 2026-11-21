@@ -266,7 +266,7 @@ main.wrap{padding-top:25px}
 <h2>Administrator — Masrur</h2><p class="muted">Verify with the final four digits of your registered phone number to unlock election settings.</p>
 <form id="adminVerifyForm"><div class="field"><label>Administrator</label><input value="Masrur" disabled></div><div class="field"><label for="adminPin">Last four registered phone digits</label><input id="adminPin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="••••" required></div><button class="btn" id="adminVerifyBtn">Verify as Admin</button></form>
 <div id="adminControls" class="hidden"><div class="notice ok">Verified as Masrur. Admin access lasts 20 minutes.</div><button class="btn secondary" type="button" id="adminSignOut">Lock admin panel</button>
-<h2 style="margin-top:28px">1. Approved members</h2><p class="muted">These nine voters and candidates are pre-registered. Nobody needs to register or add a name.</p><div id="adminRoster"></div><p id="memberCountNote" class="notice"></p><h2 style="margin-top:31px">2. Create a fresh election</h2><p class="muted">Start a new election with zero votes. The previous test election and its votes remain separate in Past elections; the existing nine members and verification digits stay unchanged.</p><div class="notice ok"><strong>Fresh official poll:</strong> Set a new opening and closing time, then publish. All members can vote again in the new election.</div>
+<h2 style="margin-top:28px">1. Approved members</h2><p class="muted">These nine voters and candidates are pre-registered. Nobody needs to register or add a name.</p><div id="adminRoster"></div><p id="memberCountNote" class="notice"></p><h2 style="margin-top:31px">2. Create a fresh election</h2><p class="muted">Start a new election with zero votes. The previous test election and its votes remain separate in Past elections; the existing nine members and verification digits stay unchanged.</p><div id="adminDraftStatus" class="notice ok"><strong>Fresh official poll:</strong> Your private draft is ready. Select new opening and closing dates to publish with zero votes.</div>
 <form id="adminForm"><div class="field"><label>Poll / election title</label><input id="eTitle" value="MATES Foundation Executive Committee Election" maxlength="120" required></div>
 <div class="two"><div class="field"><label>Voting opens (Sydney time)</label><input id="eStart" type="datetime-local" required></div><div class="field"><label>Voting closes (Sydney time)</label><input id="eEnd" type="datetime-local" required></div></div>
 <div class="field"><label for="ePositions">Positions / পদবি — one per line</label><textarea id="ePositions" rows="6" style="width:100%;border:1px solid #cbd9e9;border-radius:11px;padding:13px;font:inherit">President / সভাপতি
@@ -302,7 +302,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:'Australia/Sydney'}).format(new Date(s));
 const status=e=>Date.now()<new Date(e.starts_at)?'Upcoming':Date.now()<new Date(e.ends_at)?'Open':'Closed';
-let roster=[],elections=[],active=null,token=null,verifiedMember=null,adminToken=null,editingMember=null,currentPositions=[...positions],lastSubmittedChoices=null;
+let roster=[],elections=[],active=null,token=null,verifiedMember=null,adminToken=null,editingMember=null,currentPositions=[...positions],lastSubmittedChoices=null,adminDraft=null;
 function msg(t,type=''){$('globalMsg').innerHTML='<div class="notice '+type+'">'+esc(t)+'</div>';}
 function candidatesFor(member){return roster.filter(m=>m.id!==member)}
 function preview(){const selected=$('previewName').value;$('previewQuestions').innerHTML=positions.map((p,i)=>'<div class="question"><h3>'+(i+1)+'. '+esc(displayPosition(p))+'</h3><div class="options">'+fallback.filter(x=>x!==selected).map(x=>'<label class="option"><input type="radio" disabled name="prev_'+i+'">'+esc(displayMember(x))+'</label>').join('')+'</div></div>').join('')}
@@ -613,15 +613,39 @@ function updateAdminRoster(){
  $('adminRoster').innerHTML='<div class="options">'+expected.map(n=>'<div class="option" style="cursor:default;justify-content:space-between"><strong>'+esc(displayMember(n))+'</strong><span class="tag '+(saved.has(n)?'open':'')+'">'+(saved.has(n)?'Registered':'Not loaded')+'</span></div>').join('')+'</div>';
 }
 async function reloadRoster(){const r=await db.rpc('mates_member_names');if(r.error){msg(r.error.message,'error');return}roster=r.data||[];renderRoster();updateAdminRoster()}
+
+async function loadAdminDraft(){
+ if(!db||!adminToken)return;
+ const r=await db.rpc('mates_admin_get_draft',{p_token:adminToken});
+ const notice=$('adminDraftStatus'),btn=$('publishElectionBtn');
+ if(r.error){
+   adminDraft=null;btn.disabled=true;notice.className='notice error';
+   notice.textContent='Could not load the private election draft: '+r.error.message;
+   return;
+ }
+ adminDraft=r.data;
+ if(!adminDraft){
+   btn.disabled=true;notice.className='notice';
+   notice.textContent='No unpublished draft remains. The previously prepared draft may already have been published.';
+   return;
+ }
+ $('eTitle').value=adminDraft.title;
+ $('ePositions').value=(adminDraft.positions||[]).map(displayPosition).join(String.fromCharCode(10));
+ notice.className='notice ok';
+ notice.innerHTML='<strong>Unpublished draft loaded:</strong> '+esc(adminDraft.title)+'. Zero votes are attached to this draft. Select the dates below to publish.';
+ btn.disabled=false;
+}
+
 $('adminToggle').onclick=()=>{if(!db){msg('Configure Supabase to enable administrator access.','error');return}$('admin').classList.toggle('hidden');if(!$('admin').classList.contains('hidden'))$('admin').scrollIntoView({behavior:'smooth',block:'start'})};
 $('backBtn').onclick=()=>{history.replaceState(null,'',location.pathname);showElections()};
-$('adminVerifyForm').onsubmit=async ev=>{ev.preventDefault();if(!db)return;const pin=$('adminPin').value;const b=$('adminVerifyBtn');b.disabled=true;const r=await db.rpc('mates_admin_verify',{p_last4:pin});$('adminPin').value='';b.disabled=false;if(r.error||!r.data){msg('Verification failed or temporarily locked. Confirm Masrur’s registered final four digits.','error');return}adminToken=r.data;$('adminVerifyForm').classList.add('hidden');$('adminControls').classList.remove('hidden');await reloadRoster();msg('Masrur verified as administrator.','ok')};
-$('adminSignOut').onclick=async()=>{if(db&&adminToken)await db.rpc('mates_admin_sign_out',{p_token:adminToken});adminToken=null;$('adminVerifyForm').classList.remove('hidden');$('adminControls').classList.add('hidden');msg('Administrator panel locked.','ok')};
+$('adminVerifyForm').onsubmit=async ev=>{ev.preventDefault();if(!db)return;const pin=$('adminPin').value;const b=$('adminVerifyBtn');b.disabled=true;const r=await db.rpc('mates_admin_verify',{p_last4:pin});$('adminPin').value='';b.disabled=false;if(r.error||!r.data){msg('Verification failed or temporarily locked. Confirm Masrur’s registered final four digits.','error');return}adminToken=r.data;$('adminVerifyForm').classList.add('hidden');$('adminControls').classList.remove('hidden');await reloadRoster();await loadAdminDraft();msg('Masrur verified as administrator.','ok')};
+$('adminSignOut').onclick=async()=>{if(db&&adminToken)await db.rpc('mates_admin_sign_out',{p_token:adminToken});adminToken=null;adminDraft=null;$('adminVerifyForm').classList.remove('hidden');$('adminControls').classList.add('hidden');msg('Administrator panel locked.','ok')};
 function publishFeedback(message,type='error'){$('publishMessage').innerHTML='<div class="notice '+(type==='ok'?'ok':'error')+'">'+esc(message)+'</div>';$('publishMessage').scrollIntoView({behavior:'smooth',block:'center'})}
 $('adminForm').onsubmit=async ev=>{
  ev.preventDefault();
  $('publishMessage').innerHTML='';
  if(!db||!adminToken){publishFeedback('Verify as Masrur first.');return}
+ if(!adminDraft){publishFeedback('No unpublished draft is available. Verify as administrator again to refresh.');return}
  const required=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];if(roster.length!==9||required.some(n=>!roster.some(x=>x.first_name===n))){publishFeedback('The nine approved members must be loaded privately into Supabase first. No member registration is needed.');return}
  const starts=new Date($('eStart').value),ends=new Date($('eEnd').value);
  const titles=$('ePositions').value.split(String.fromCharCode(10)).map(x=>storagePosition(x.trim())).filter(Boolean);
@@ -633,9 +657,9 @@ $('adminForm').onsubmit=async ev=>{
  }
  const button=$('publishElectionBtn');button.disabled=true;
  try{
-   const r=await db.rpc('mates_create_election_admin',{p_token:adminToken,p_title:$('eTitle').value,p_starts:starts.toISOString(),p_ends:ends.toISOString(),p_positions:titles});
+   const r=await db.rpc('mates_admin_publish_draft',{p_token:adminToken,p_draft:adminDraft.id,p_title:$('eTitle').value,p_starts:starts.toISOString(),p_ends:ends.toISOString(),p_positions:titles});
    if(r.error){publishFeedback('Supabase could not publish this election: '+r.error.message);return}
-   $('admin').classList.add('hidden');await load();msg('New election published with zero votes. Its voting link is separate from the previous test.','ok');
+   adminDraft=null;$('publishElectionBtn').disabled=true;$('admin').classList.add('hidden');await load();msg('The new election is published with zero votes. The previous test election is preserved.','ok');
  }catch(error){publishFeedback('Could not publish: '+error.message)}
  finally{button.disabled=false}
 };
