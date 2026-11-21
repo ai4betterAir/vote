@@ -223,24 +223,30 @@ main.wrap{padding-top:25px}
  .results-grid .results-featured{grid-column:auto;grid-row:auto}
 }
 
-/* Results dashboard: large overall plot, four compact office cards, Treasurer last. */
-.results-grid.results-stacked{display:flex;flex-direction:column;gap:20px;width:100%;align-items:stretch}
+/* Final-results hierarchy: ONE large overall ranking, FIVE equal smaller office plots below. */
+.results-grid.results-stacked{display:flex;flex-direction:column;gap:25px;width:100%;align-items:stretch}
 .results-stacked>.results-overall{width:100%;margin:0;padding:0}
-.results-stacked>.results-overall .chart{grid-template-columns:35px minmax(90px,145px) minmax(140px,1fr) 65px;margin:14px 22px;column-gap:13px}
-.results-stacked>.results-overall .track{height:18px}
+.results-stacked>.results-overall h2{font-size:22px;padding:18px 22px}
+.results-stacked>.results-overall .chart{grid-template-columns:35px minmax(100px,155px) minmax(140px,1fr) 65px;margin:16px 24px;column-gap:14px}
+.results-stacked>.results-overall .track{height:19px}
 .results-stacked>.results-breakdown{width:100%;margin:0}
-.results-stacked>.results-breakdown .result-small-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin-top:15px}
-.results-stacked .result-small-grid>.question{min-width:0;padding:19px;border:1px solid #d8e5ec}
-.results-stacked .result-small-grid>.question h3{font-size:16px}
-.results-stacked .result-small-grid>.question .chartline{font-size:12px}
-.results-stacked .result-small-grid>.question .track{height:11px}
-.results-stacked .result-small-grid>.question.treasurer-last{grid-column:1/-1;background:linear-gradient(110deg,#fff,#f6fcfa)}
-.results-stacked .result-small-grid>.question.treasurer-last h3{font-size:18px}
-@media(max-width:680px){
- .results-stacked>.results-overall .chart{grid-template-columns:24px 74px minmax(70px,1fr) 45px;margin:12px 8px;gap:6px}
+.results-stacked>.results-breakdown h2{font-size:19px}
+.results-stacked>.results-breakdown .result-small-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:16px;margin-top:15px}
+.results-stacked .result-small-grid>.question,
+.results-stacked .result-small-grid>.question.treasurer-last{grid-column:auto;min-width:0;padding:16px;border:1px solid #d8e5ec;background:#fff;border-radius:12px}
+.results-stacked .result-small-grid>.question h3,
+.results-stacked .result-small-grid>.question.treasurer-last h3{font-size:15px;line-height:1.5}
+.results-stacked .result-small-grid>.question .results-topline{align-items:flex-start}
+.results-stacked .result-small-grid>.question .chart{margin:11px 0}
+.results-stacked .result-small-grid>.question .chartline{font-size:11px;flex-wrap:wrap;gap:5px}
+.results-stacked .result-small-grid>.question .track{height:9px}
+@media(max-width:930px){
+ .results-stacked>.results-breakdown .result-small-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:610px){
+ .results-stacked>.results-overall .chart{grid-template-columns:24px 76px minmax(70px,1fr) 45px;margin:12px 8px;gap:6px}
  .results-stacked>.results-overall .chartline strong,.results-stacked>.results-overall .chartline span{font-size:11px}
  .results-stacked>.results-breakdown .result-small-grid{grid-template-columns:1fr}
- .results-stacked .result-small-grid>.question.treasurer-last{grid-column:1}
 }
 </style></head><body>
 <header><div class="wrap nav"><a class="brand" href="./"><img class="brand-icon" src="./assets/openpoll-mark.svg" alt="">Open<span class="brand-poll">Poll</span></a><nav class="nav-links" aria-label="Main navigation"><a href="./">Home</a><a href="./#homeWorkflow">How it works</a><a href="./?create=1">Create poll</a></nav><a class="btn secondary" href="./?page=home" style="text-decoration:none">All polls</a></div></header>
@@ -549,7 +555,7 @@ async function renderFinalResults(){
    return card+'</div>';
  };
  const officeCards=orderedPositions.map(renderPositionCard).join('');
- const positionsMarkup='<section class="results-breakdown"><h2>▥ Position-wise results</h2><div class="result-small-grid">'+officeCards+'</div></section>';
+ const positionsMarkup='<section class="results-breakdown"><h2>▥ Individual position results</h2><div class="result-small-grid">'+officeCards+'</div></section>';
  $('ballotContent').innerHTML='<div class="notice ok">Voting has closed. Final results are available.</div>'
    +'<div class="results-header"><span class="results-title">MATES Foundation · Final results</span><div class="results-weight-pills" aria-label="Position weights">'+weightPills+'</div></div>'
    +'<div class="results-grid results-stacked">'+overall+positionsMarkup+'</div>';
