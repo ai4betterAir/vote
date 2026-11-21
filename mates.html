@@ -197,7 +197,20 @@ main.wrap{padding-top:25px}
 .results-grid .results-overall .chartline strong{grid-column:2}
 .results-grid .results-overall .track{grid-column:3}
 .results-grid .results-overall .chartline span{grid-column:4}
-.brand{display:flex;align-items:center;gap:8px}.brand-icon{width:38px;height:38px;flex-shrink:0}.brand-poll{color:#32d6c6}</style></head><body>
+.brand{display:flex;align-items:center;gap:8px}.brand-icon{width:38px;height:38px;flex-shrink:0}.brand-poll{color:#32d6c6}
+/* Place the fifth office chart in the unused space beneath the main ranking. */
+.results-grid .results-left-stack{display:flex;flex-direction:column;gap:17px;min-width:0}
+.results-grid .results-left-stack .results-overall{width:100%}
+.results-grid .results-featured{border-radius:13px;overflow:hidden;border:1px solid #cbdce7;background:#fff;box-shadow:0 8px 22px #0e3e5610}
+.results-grid .results-featured h2{font-size:19px;background:#123b5e;color:#fff;padding:16px 18px;margin:0}
+.results-grid .results-featured .result-small-grid{grid-template-columns:minmax(0,1fr);margin:0;padding:14px;gap:0}
+.results-grid .results-featured .question{margin:0;padding:15px 17px;border-radius:11px;background:#fff}
+.results-grid .results-featured .chart{margin:11px 0}
+.results-grid .results-featured .chartline{font-size:12px}
+.results-grid .results-featured .track{height:10px}
+.results-grid .results-featured .fill{background:linear-gradient(90deg,#007f76,#85dcca)}
+@media(max-width:950px){.results-grid .results-left-stack{gap:17px}}
+</style></head><body>
 <header><div class="wrap nav"><a class="brand" href="./"><img class="brand-icon" src="./assets/openpoll-mark.svg" alt="">Open<span class="brand-poll">Poll</span></a><nav class="nav-links" aria-label="Main navigation"><a href="./">Home</a><a href="./#homeWorkflow">How it works</a><a href="./?create=1">Create poll</a></nav><a class="btn secondary" href="./?page=home" style="text-decoration:none">All polls</a></div></header>
 <section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation<br><span style="color:#7ae4d2">Executive Committee Election</span></h1><p>Nine approved members · Five executive positions · One private ballot per person. Select your name, verify your details and cast your vote.</p><span class="mates-app-version">MATES Foundation member election</span></div><span id="heroElectionStatus" class="hero-status" aria-live="polite"></span></div></section>
 <main class="wrap"><div id="globalMsg" role="status"></div>
@@ -470,21 +483,36 @@ async function renderFinalResults(){
      +'<div class="track" role="img" aria-label="'+esc(row.name)+': '+row.score.toFixed(1)+' out of 100"><div class="fill" style="width:'+pc.toFixed(2)+'%"></div></div></div>';
  }
  overall+='<div class="results-note">Score = weighted average of each candidate’s percentage vote share across the executive positions. These are combined support scores, not votes for a single office.</div></section>';
- let positionsMarkup='<section class="results-breakdown"><h2>▥ Position-wise results</h2><div class="result-small-grid">';
- for(const position of currentPositions){
+
+ // An odd number of position charts leaves one isolated card on the right.
+ // Move that card beneath the overall ranking in the otherwise empty left column.
+ const gapPosition=currentPositions.length>2&&currentPositions.length%2===1
+   ?(currentPositions.includes('Treasurer')?'Treasurer':currentPositions[currentPositions.length-1])
+   :null;
+ const renderPositionCard=(position)=>{
    const total=totals[position]||0;
-   const counts=roster.map(m=>({name:m.first_name,votes:Number(data.find(x=>x.position===position&&x.candidate_id===m.id)?.votes||0)})).sort((a,b)=>b.votes-a.votes||a.name.localeCompare(b.name));
-   positionsMarkup+='<div class="question"><div class="results-topline"><h3>'+esc(position)+'</h3><span class="tag">'+total+' votes</span></div>';
+   const counts=roster.map(m=>({
+     name:m.first_name,
+     votes:Number(data.find(x=>x.position===position&&x.candidate_id===m.id)?.votes||0)
+   })).sort((a,b)=>b.votes-a.votes||a.name.localeCompare(b.name));
+   let card='<div class="question"><div class="results-topline"><h3>'+esc(position)+'</h3><span class="tag">'+total+' votes</span></div>';
    for(const row of counts){
      const pc=total?100*row.votes/total:0;
-     positionsMarkup+='<div class="chart"><div class="chartline"><strong>'+esc(row.name)+'</strong><span>'+row.votes+' ('+pc.toFixed(1)+'%)</span></div><div class="track"><div class="fill" style="width:'+pc.toFixed(2)+'%"></div></div></div>';
+     card+='<div class="chart"><div class="chartline"><strong>'+esc(row.name)+'</strong><span>'+row.votes+' ('+pc.toFixed(1)+'%)</span></div><div class="track"><div class="fill" style="width:'+pc.toFixed(2)+'%"></div></div></div>';
    }
-   positionsMarkup+='</div>';
+   return card+'</div>';
+ };
+ const featured=gapPosition
+   ?'<section class="results-featured" aria-label="'+esc(gapPosition)+' position results"><h2>▥ '+esc(gapPosition)+' results</h2><div class="result-small-grid featured-list">'+renderPositionCard(gapPosition)+'</div></section>'
+   :'';
+ let positionsMarkup='<section class="results-breakdown"><h2>▥ Position-wise results</h2><div class="result-small-grid">';
+ for(const position of currentPositions.filter(p=>p!==gapPosition)){
+   positionsMarkup+=renderPositionCard(position);
  }
  positionsMarkup+='</div></section>';
  $('ballotContent').innerHTML='<div class="notice ok">Voting has closed. Final results are available.</div>'
    +'<div class="results-header"><span class="results-title">MATES Foundation · Final results</span><div class="results-weight-pills" aria-label="Position weights">'+weightPills+'</div></div>'
-   +'<div class="results-grid">'+overall+positionsMarkup+'</div>';
+   +'<div class="results-grid"><div class="results-left-stack">'+overall+featured+'</div>'+positionsMarkup+'</div>';
 }
 function displayElections(){
  if(!elections.length){
