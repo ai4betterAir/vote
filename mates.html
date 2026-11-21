@@ -224,11 +224,11 @@ main.wrap{padding-top:25px}
 <h2 style="margin-top:28px">1. Approved members</h2><p class="muted">These nine voters and candidates are pre-registered. Nobody needs to register or add a name.</p><div id="adminRoster"></div><p id="memberCountNote" class="notice"></p><h2 style="margin-top:31px">2. Create election</h2><p class="muted">Choose a title, times and the executive positions. All eligible members will be candidates for each position except themselves.</p>
 <form id="adminForm"><div class="field"><label>Poll / election title</label><input id="eTitle" value="MATES EC Committee Election" maxlength="120" required></div>
 <div class="two"><div class="field"><label>Voting opens (Sydney time)</label><input id="eStart" type="datetime-local" required></div><div class="field"><label>Voting closes (Sydney time)</label><input id="eEnd" type="datetime-local" required></div></div>
-<div class="field"><label for="ePositions">Positions — one per line</label><textarea id="ePositions" rows="6" style="width:100%;border:1px solid #cbd9e9;border-radius:11px;padding:13px;font:inherit">President
-Secretary
-Vice President
-Joint Secretary
-Treasurer</textarea></div><button class="btn" type="submit" id="publishElectionBtn">Publish election</button><div id="publishMessage" role="status" aria-live="polite"></div></form>
+<div class="field"><label for="ePositions">Positions / পদবি — one per line</label><textarea id="ePositions" rows="6" style="width:100%;border:1px solid #cbd9e9;border-radius:11px;padding:13px;font:inherit">President / সভাপতি
+Secretary / সাধারণ সম্পাদক
+Vice President / সহ-সভাপতি
+Joint Secretary / যুগ্ম সাধারণ সম্পাদক
+Treasurer / কোষাধ্যক্ষ</textarea><p class="muted small">English / বাংলা labels are shown to members. Existing English position identifiers are preserved in the database.</p></div><button class="btn" type="submit" id="publishElectionBtn">Publish election</button><div id="publishMessage" role="status" aria-live="polite"></div></form>
 </div><p class="muted small">Five unsuccessful verification attempts temporarily lock the account. The site does not send an SMS code.</p></section>
 <section id="ballot" class="hidden"><div class="panel"><div class="controls"><button class="btn secondary" id="backBtn">← Elections</button><span id="electionState" class="tag"></span></div><h2 id="chosenElection" style="margin-top:21px"></h2><p id="schedule" class="muted small"></p><div id="stepper" class="workflow-steps" aria-label="Voting steps"></div><div id="ballotContent"></div></div><div id="turnoutPanel" class="turnout-panel" aria-live="polite"></div></section>
 <section class="panel" id="registeredMembers"><div class="controls"><h2 style="margin:0">Eligible members & candidates</h2><span class="tag">9 members</span></div><p class="muted small">All nine members are eligible to vote and stand for each position. Only first names are shown publicly; registered phone details stay private.</p><div id="rosterDisplay" class="options"></div></section>
@@ -240,6 +240,19 @@ const config={url:'https://icdbowlocgwbksstritz.supabase.co',anonKey:'sb_publish
 const db=config.url.startsWith('https://')&&!config.url.includes('HERE')&&!config.anonKey.includes('HERE')?createClient(config.url,config.anonKey):null;
 const fallback=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];
 const positions=['President','Secretary','Vice President','Joint Secretary','Treasurer'];
+
+const positionBn={
+ 'President':'সভাপতি',
+ 'Secretary':'সাধারণ সম্পাদক',
+ 'Vice President':'সহ-সভাপতি',
+ 'Joint Secretary':'যুগ্ম সাধারণ সম্পাদক',
+ 'Treasurer':'কোষাধ্যক্ষ'
+};
+// Translation is presentation-only: RPC calls and saved votes use the same English keys.
+const displayPosition=p=>positionBn[p]?p+' / '+positionBn[p]:p;
+const storagePosition=p=>positions.find(key=>p===displayPosition(key))||p;
+const displayMember=name=>name==='AbdulAhad'?'Abdul Ahad':name;
+
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:'Australia/Sydney'}).format(new Date(s));
@@ -247,9 +260,9 @@ const status=e=>Date.now()<new Date(e.starts_at)?'Upcoming':Date.now()<new Date(
 let roster=[],elections=[],active=null,token=null,verifiedMember=null,adminToken=null,editingMember=null,currentPositions=[...positions],lastSubmittedChoices=null;
 function msg(t,type=''){$('globalMsg').innerHTML='<div class="notice '+type+'">'+esc(t)+'</div>';}
 function candidatesFor(member){return roster.filter(m=>m.id!==member)}
-function preview(){const selected=$('previewName').value;$('previewQuestions').innerHTML=positions.map((p,i)=>'<div class="question"><h3>'+(i+1)+'. '+p+'</h3><div class="options">'+fallback.filter(x=>x!==selected).map(x=>'<label class="option"><input type="radio" disabled name="prev_'+i+'">'+esc(x)+'</label>').join('')+'</div></div>').join('')}
-function renderRoster(){const names=roster.length?roster.map(m=>m.first_name):fallback;$('rosterDisplay').innerHTML=names.map((name,i)=>'<div class="option" style="cursor:default"><span class="tag">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(name)+'</strong></div>').join('')}
-function selectPreview(){$('previewName').innerHTML='<option value="">Choose your name</option>'+fallback.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');$('previewName').onchange=preview;preview()}
+function preview(){const selected=$('previewName').value;$('previewQuestions').innerHTML=positions.map((p,i)=>'<div class="question"><h3>'+(i+1)+'. '+esc(displayPosition(p))+'</h3><div class="options">'+fallback.filter(x=>x!==selected).map(x=>'<label class="option"><input type="radio" disabled name="prev_'+i+'">'+esc(displayMember(x))+'</label>').join('')+'</div></div>').join('')}
+function renderRoster(){const names=roster.length?roster.map(m=>m.first_name):fallback;$('rosterDisplay').innerHTML=names.map((name,i)=>'<div class="option" style="cursor:default"><span class="tag">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(displayMember(name))+'</strong></div>').join('')}
+function selectPreview(){$('previewName').innerHTML='<option value="">Choose your name</option>'+fallback.map(x=>'<option value="'+esc(x)+'">'+esc(displayMember(x))+'</option>').join('');$('previewName').onchange=preview;preview()}
 async function chooseElection(e){
  if(!e)return;
  history.replaceState(null,'',location.pathname+'?election='+encodeURIComponent(e.id));
@@ -294,7 +307,7 @@ async function refreshTurnout(election=active,container=$('turnoutPanel')){
  const confirmValue=$('confirmTurnoutValue');if(confirmValue&&active?.id===election.id){confirmValue.textContent=voters.length+' of '+total+' members voted · '+pct.toFixed(0)+'%';const bar=$('confirmTurnoutFill');if(bar)bar.style.width=Math.min(100,pct).toFixed(2)+'%';}
  const isOpen=status(election)==='Open';
  const list=voters.length
-  ?voters.map(v=>'<div class="turnout-person"><span class="turnout-avatar" aria-hidden="true">✓</span><strong>'+esc(v.first_name)+'</strong><span class="tag">Voted</span></div>').join('')
+  ?voters.map(v=>'<div class="turnout-person"><span class="turnout-avatar" aria-hidden="true">✓</span><strong>'+esc(displayMember(v.first_name))+'</strong><span class="tag">Voted</span></div>').join('')
   :'<p class="muted">No members have submitted their votes yet.</p>';
  container.innerHTML='<div class="turnout-heading"><h3>Members who have already voted</h3><span class="turnout-status">'+(isOpen?'● Voting is ongoing':'Voting has closed')+'</span></div>'
  +'<div class="turnout-stats"><strong>'+voters.length+' of '+total+'</strong><span>approved members have voted · '+pct.toFixed(0)+'% participation</span></div>'
@@ -344,8 +357,8 @@ function renderElection(){
    return;
  }
  updateStepper(1);
- const options=roster.map(member=>'<option value="'+esc(member.id)+'">'+esc(member.first_name)+'</option>').join('');
- const pending=currentPositions.map((position,i)=>'<div class="vote-choice"><label for="previewOption'+i+'">'+esc(position)+'</label><select id="previewOption'+i+'" disabled><option>Verify first to select</option></select></div>').join('');
+ const options=roster.map(member=>'<option value="'+esc(member.id)+'">'+esc(displayMember(member.first_name))+'</option>').join('');
+ const pending=currentPositions.map((position,i)=>'<div class="vote-choice"><label for="previewOption'+i+'">'+esc(displayPosition(position))+'</label><select id="previewOption'+i+'" disabled><option>Verify first to select</option></select></div>').join('');
  $('ballotContent').innerHTML='<div class="vote-columns">'
    +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon" aria-hidden="true">◈</span> Verify your identity</div><div class="vote-section-body"><p>Select your name from the nine approved members and enter the final four digits of your registered phone.</p>'
    +'<form id="verifyForm"><div class="field"><label for="voterName">Your name (approved members)</label><select id="voterName" required><option value="">Select your name</option>'+options+'</select></div>'
@@ -384,9 +397,9 @@ function renderElection(){
 function renderVotingForm(){
  updateStepper(2);
  const member=roster.find(m=>m.id===verifiedMember);
- const name=member?.first_name||'Member';
+ const name=displayMember(member?.first_name||'Member');
  const choices=currentPositions.map((position,i)=>{
-   const options=candidatesFor(verifiedMember).map(m=>'<option value="'+esc(m.id)+'">'+esc(m.first_name)+'</option>').join('');
+   const options=candidatesFor(verifiedMember).map(m=>'<option value="'+esc(m.id)+'">'+esc(displayMember(m.first_name))+'</option>').join('');
    return '<div class="vote-choice"><label for="voteSelect'+i+'">'+esc(position)+' <span aria-label="required" style="color:#b03d48">*</span></label><select id="voteSelect'+i+'" required><option value="">Select a candidate</option>'+options+'</select></div>';
  }).join('');
  $('ballotContent').innerHTML='<div class="vote-columns">'
@@ -424,7 +437,7 @@ function showVoteConfirmation(previouslySubmitted){
  let choicesMarkup='';
  if(recorded){
    choicesMarkup='<p class="muted" style="font-size:13px">These are the selections you just submitted. They are only shown in this browser session.</p>'
-     +lastSubmittedChoices.map(choice=>'<div class="submitted-line"><span>'+esc(choice.position)+'</span><b>'+esc(choice.first_name)+'</b><em>✓ Submitted</em></div>').join('');
+     +lastSubmittedChoices.map(choice=>'<div class="submitted-line"><span>'+esc(displayPosition(choice.position))+'</span><b>'+esc(displayMember(choice.first_name))+'</b><em>✓ Submitted</em></div>').join('');
  }else{
    choicesMarkup='<p class="muted">Your ballot was securely recorded. Previous selections cannot be retrieved here; this protects the confidentiality of your vote.</p>';
  }
@@ -470,9 +483,9 @@ async function renderFinalResults(){
      const share=totals[position]>0?votes/totals[position]*100:0;
      total+=share*(positionWeights[position]||0);
    }
-   return {name:member.first_name,score:weightSum?total/weightSum:0};
+   return {name:displayMember(member.first_name),score:weightSum?total/weightSum:0};
  }).sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name));
- const weightPills=currentPositions.map(position=>'<span>'+esc(position)+' '+(positionWeights[position]||'—')+'</span>').join('');
+ const weightPills=currentPositions.map(position=>'<span>'+esc(displayPosition(position))+' '+ (positionWeights[position]||'—')+'</span>').join('');
  let overall='<section class="results-overall" aria-label="Overall weighted scores"><h2>▥ Overall weighted results (out of 100)</h2>';
  if(!weightSum)overall+='<div class="notice">No position weights configured.</div>';
  if(!data.some(r=>Number(r.votes)>0))overall+='<p class="muted" style="padding:0 17px">No ballots were recorded during this election.</p>';
@@ -492,10 +505,10 @@ async function renderFinalResults(){
  const renderPositionCard=(position)=>{
    const total=totals[position]||0;
    const counts=roster.map(m=>({
-     name:m.first_name,
+     name:displayMember(m.first_name),
      votes:Number(data.find(x=>x.position===position&&x.candidate_id===m.id)?.votes||0)
    })).sort((a,b)=>b.votes-a.votes||a.name.localeCompare(b.name));
-   let card='<div class="question"><div class="results-topline"><h3>'+esc(position)+'</h3><span class="tag">'+total+' votes</span></div>';
+   let card='<div class="question"><div class="results-topline"><h3>'+esc(displayPosition(position))+'</h3><span class="tag">'+total+' votes</span></div>';
    for(const row of counts){
      const pc=total?100*row.votes/total:0;
      card+='<div class="chart"><div class="chartline"><strong>'+esc(row.name)+'</strong><span>'+row.votes+' ('+pc.toFixed(1)+'%)</span></div><div class="track"><div class="fill" style="width:'+pc.toFixed(2)+'%"></div></div></div>';
@@ -503,7 +516,7 @@ async function renderFinalResults(){
    return card+'</div>';
  };
  const featured=gapPosition
-   ?'<section class="results-featured" aria-label="'+esc(gapPosition)+' position results"><h2>▥ '+esc(gapPosition)+' results</h2><div class="result-small-grid featured-list">'+renderPositionCard(gapPosition)+'</div></section>'
+   ?'<section class="results-featured" aria-label="'+esc(displayPosition(gapPosition))+' position results"><h2>▥ '+esc(displayPosition(gapPosition))+' results</h2><div class="result-small-grid featured-list">'+renderPositionCard(gapPosition)+'</div></section>'
    :'';
  let positionsMarkup='<section class="results-breakdown"><h2>▥ Position-wise results</h2><div class="result-small-grid">';
  for(const position of currentPositions.filter(p=>p!==gapPosition)){
@@ -533,7 +546,7 @@ function displayElections(){
  });
 }
 
-async function load(){renderRoster();if(!db){selectPreview();$('adminToggle').disabled=true;$('electionList').innerHTML='<div class="card"><h3>MATES EC Committee Election</h3><p class="muted">Nine eligible members competing for President, Secretary, Vice President, Joint Secretary and Treasurer.</p><span class="tag">Preview only — database setup required</span></div>';return}
+async function load(){renderRoster();if(!db){selectPreview();$('adminToggle').disabled=true;$('electionList').innerHTML='<div class="card"><h3>MATES EC Committee Election</h3><p class="muted">Nine eligible members competing for President / সভাপতি, Secretary / সাধারণ সম্পাদক, Vice President / সহ-সভাপতি, Joint Secretary / যুগ্ম সাধারণ সম্পাদক, Treasurer / কোষাধ্যক্ষ.</p><span class="tag">Preview only — database setup required</span></div>';return}
 $('noSetup').classList.add('hidden');$('preview').classList.add('hidden');
 const [a,b]=await Promise.all([db.rpc('mates_member_names'),db.from('mates_elections').select('id,title,starts_at,ends_at').order('starts_at',{ascending:false})]);if(a.error||b.error){msg('MATES voting database is not configured: '+(a.error?.message||b.error?.message),'error');return}roster=a.data||[];elections=b.data||[];renderRoster();displayElections();showLandingParticipation();updateHeroStatus(elections.find(e=>status(e)==='Open')||elections[0]);
 const id=new URLSearchParams(location.search).get('election');const found=elections.find(x=>x.id===id);if(found)chooseElection(found)}
@@ -543,7 +556,7 @@ function updateAdminRoster(){
  const missing=expected.filter(n=>!saved.has(n));
  $('memberCountNote').textContent=missing.length?'Setup incomplete: '+roster.length+' of 9 members saved. Run the private voter setup SQL. Missing: '+missing.join(', '):'All nine approved members are registered.';
  $('memberCountNote').className='notice '+(missing.length?'':'ok');
- $('adminRoster').innerHTML='<div class="options">'+expected.map(n=>'<div class="option" style="cursor:default;justify-content:space-between"><strong>'+esc(n)+'</strong><span class="tag '+(saved.has(n)?'open':'')+'">'+(saved.has(n)?'Registered':'Not loaded')+'</span></div>').join('')+'</div>';
+ $('adminRoster').innerHTML='<div class="options">'+expected.map(n=>'<div class="option" style="cursor:default;justify-content:space-between"><strong>'+esc(displayMember(n))+'</strong><span class="tag '+(saved.has(n)?'open':'')+'">'+(saved.has(n)?'Registered':'Not loaded')+'</span></div>').join('')+'</div>';
 }
 async function reloadRoster(){const r=await db.rpc('mates_member_names');if(r.error){msg(r.error.message,'error');return}roster=r.data||[];renderRoster();updateAdminRoster()}
 $('adminToggle').onclick=()=>{if(!db){msg('Configure Supabase to enable administrator access.','error');return}$('admin').classList.toggle('hidden');if(!$('admin').classList.contains('hidden'))$('admin').scrollIntoView({behavior:'smooth',block:'start'})};
@@ -557,7 +570,7 @@ $('adminForm').onsubmit=async ev=>{
  if(!db||!adminToken){publishFeedback('Verify as Masrur first.');return}
  const required=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];if(roster.length!==9||required.some(n=>!roster.some(x=>x.first_name===n))){publishFeedback('The nine approved members must be loaded privately into Supabase first. No member registration is needed.');return}
  const starts=new Date($('eStart').value),ends=new Date($('eEnd').value);
- const titles=$('ePositions').value.split(String.fromCharCode(10)).map(x=>x.trim()).filter(Boolean);
+ const titles=$('ePositions').value.split(String.fromCharCode(10)).map(x=>storagePosition(x.trim())).filter(Boolean);
  if(!Number.isFinite(+starts)||!Number.isFinite(+ends)||ends<=starts||ends<=new Date()){
    publishFeedback('Choose valid voting dates. The closing time must be in the future and later than the opening time.');return
  }
