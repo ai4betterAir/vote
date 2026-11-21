@@ -400,7 +400,7 @@ function renderVotingForm(){
  const name=displayMember(member?.first_name||'Member');
  const choices=currentPositions.map((position,i)=>{
    const options=candidatesFor(verifiedMember).map(m=>'<option value="'+esc(m.id)+'">'+esc(displayMember(m.first_name))+'</option>').join('');
-   return '<div class="vote-choice"><label for="voteSelect'+i+'">'+esc(position)+' <span aria-label="required" style="color:#b03d48">*</span></label><select id="voteSelect'+i+'" required><option value="">Select a candidate</option>'+options+'</select></div>';
+   return '<div class="vote-choice"><label for="voteSelect'+i+'">'+esc(displayPosition(position))+' <span aria-label="required" style="color:#b03d48">*</span></label><select id="voteSelect'+i+'" required><option value="">Select a candidate</option>'+options+'</select></div>';
  }).join('');
  $('ballotContent').innerHTML='<div class="vote-columns">'
    +'<section class="vote-section"><div class="vote-section-head"><span class="vote-icon">✓</span> Identity verified</div><div class="vote-section-body"><p>You are voting as an approved MATES Foundation member.</p><div class="notice ok"><b>✓ Verified as '+esc(name)+'</b><div class="small">Your name is excluded from all candidate options.</div></div><p>Choose a candidate for each position on the right. Review carefully; the ballot cannot be changed once submitted.</p><button class="btn secondary" id="switchVoter" type="button">Start verification again</button></div></section>'
@@ -554,7 +554,7 @@ function updateAdminRoster(){
  const expected=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];
  const saved=new Set(roster.map(x=>x.first_name));
  const missing=expected.filter(n=>!saved.has(n));
- $('memberCountNote').textContent=missing.length?'Setup incomplete: '+roster.length+' of 9 members saved. Run the private voter setup SQL. Missing: '+missing.join(', '):'All nine approved members are registered.';
+ $('memberCountNote').textContent=missing.length?'Setup incomplete: '+roster.length+' of 9 members saved. Run the private voter setup SQL. Missing: '+missing.map(displayMember).join(', '):'All nine approved members are registered.';
  $('memberCountNote').className='notice '+(missing.length?'':'ok');
  $('adminRoster').innerHTML='<div class="options">'+expected.map(n=>'<div class="option" style="cursor:default;justify-content:space-between"><strong>'+esc(displayMember(n))+'</strong><span class="tag '+(saved.has(n)?'open':'')+'">'+(saved.has(n)?'Registered':'Not loaded')+'</span></div>').join('')+'</div>';
 }
