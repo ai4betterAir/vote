@@ -222,6 +222,26 @@ main.wrap{padding-top:25px}
 @media(max-width:950px){
  .results-grid .results-featured{grid-column:auto;grid-row:auto}
 }
+
+/* Results dashboard: large overall plot, four compact office cards, Treasurer last. */
+.results-grid.results-stacked{display:flex;flex-direction:column;gap:20px;width:100%;align-items:stretch}
+.results-stacked>.results-overall{width:100%;margin:0;padding:0}
+.results-stacked>.results-overall .chart{grid-template-columns:35px minmax(90px,145px) minmax(140px,1fr) 65px;margin:14px 22px;column-gap:13px}
+.results-stacked>.results-overall .track{height:18px}
+.results-stacked>.results-breakdown{width:100%;margin:0}
+.results-stacked>.results-breakdown .result-small-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin-top:15px}
+.results-stacked .result-small-grid>.question{min-width:0;padding:19px;border:1px solid #d8e5ec}
+.results-stacked .result-small-grid>.question h3{font-size:16px}
+.results-stacked .result-small-grid>.question .chartline{font-size:12px}
+.results-stacked .result-small-grid>.question .track{height:11px}
+.results-stacked .result-small-grid>.question.treasurer-last{grid-column:1/-1;background:linear-gradient(110deg,#fff,#f6fcfa)}
+.results-stacked .result-small-grid>.question.treasurer-last h3{font-size:18px}
+@media(max-width:680px){
+ .results-stacked>.results-overall .chart{grid-template-columns:24px 74px minmax(70px,1fr) 45px;margin:12px 8px;gap:6px}
+ .results-stacked>.results-overall .chartline strong,.results-stacked>.results-overall .chartline span{font-size:11px}
+ .results-stacked>.results-breakdown .result-small-grid{grid-template-columns:1fr}
+ .results-stacked .result-small-grid>.question.treasurer-last{grid-column:1}
+}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand" href="./"><img class="brand-icon" src="./assets/openpoll-mark.svg" alt="">Open<span class="brand-poll">Poll</span></a><nav class="nav-links" aria-label="Main navigation"><a href="./">Home</a><a href="./#homeWorkflow">How it works</a><a href="./?create=1">Create poll</a></nav><a class="btn secondary" href="./?page=home" style="text-decoration:none">All polls</a></div></header>
 <section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation<br><span style="color:#7ae4d2">Executive Committee Election</span></h1><p>Nine approved members · Five executive positions · One private ballot per person. Select your name, verify your details and cast your vote.</p><span class="mates-app-version">MATES Foundation member election</span></div><span id="heroElectionStatus" class="hero-status" aria-live="polite"></span></div></section>
@@ -509,35 +529,30 @@ async function renderFinalResults(){
  }
  overall+='<div class="results-note">Score = weighted average of each candidate’s percentage vote share across the executive positions. These are combined support scores, not votes for a single office.</div></section>';
 
- // An odd number of position charts leaves one isolated card on the right.
- // Move that card beneath the overall ranking in the otherwise empty left column.
- const gapPosition=currentPositions.length>2&&currentPositions.length%2===1
-   ?(currentPositions.includes('Treasurer')?'Treasurer':currentPositions[currentPositions.length-1])
-   :null;
- const renderPositionCard=(position)=>{
+
+ // Preserve the election's position order but always show Treasurer last.
+ const orderedPositions=[
+   ...currentPositions.filter(position=>position!=='Treasurer'),
+   ...currentPositions.filter(position=>position==='Treasurer')
+ ];
+ const renderPositionCard=position=>{
    const total=totals[position]||0;
-   const counts=roster.map(m=>({
-     name:displayMember(m.first_name),
-     votes:Number(data.find(x=>x.position===position&&x.candidate_id===m.id)?.votes||0)
+   const counts=roster.map(member=>({
+     name:displayMember(member.first_name),
+     votes:Number(data.find(row=>row.position===position&&row.candidate_id===member.id)?.votes||0)
    })).sort((a,b)=>b.votes-a.votes||a.name.localeCompare(b.name));
-   let card='<div class="question"><div class="results-topline"><h3>'+esc(displayPosition(position))+'</h3><span class="tag">'+total+' votes</span></div>';
-   for(const row of counts){
-     const pc=total?100*row.votes/total:0;
-     card+='<div class="chart"><div class="chartline"><strong>'+esc(row.name)+'</strong><span>'+row.votes+' ('+pc.toFixed(1)+'%)</span></div><div class="track"><div class="fill" style="width:'+pc.toFixed(2)+'%"></div></div></div>';
+   let card='<div class="question '+(position==='Treasurer'?'treasurer-last':'')+'"><div class="results-topline"><h3>'+esc(displayPosition(position))+'</h3><span class="tag">'+total+' votes</span></div>';
+   for(const result of counts){
+     const percent=total?100*result.votes/total:0;
+     card+='<div class="chart"><div class="chartline"><strong>'+esc(result.name)+'</strong><span>'+result.votes+' ('+percent.toFixed(1)+'%)</span></div><div class="track"><div class="fill" style="width:'+percent.toFixed(2)+'%"></div></div></div>';
    }
    return card+'</div>';
  };
- const featured=gapPosition
-   ?'<section class="results-featured" aria-label="'+esc(displayPosition(gapPosition))+' position results"><h2>▥ '+esc(displayPosition(gapPosition))+' results</h2><div class="result-small-grid featured-list">'+renderPositionCard(gapPosition)+'</div></section>'
-   :'';
- let positionsMarkup='<section class="results-breakdown"><h2>▥ Position-wise results</h2><div class="result-small-grid">';
- for(const position of currentPositions.filter(p=>p!==gapPosition)){
-   positionsMarkup+=renderPositionCard(position);
- }
- positionsMarkup+='</div></section>';
+ const officeCards=orderedPositions.map(renderPositionCard).join('');
+ const positionsMarkup='<section class="results-breakdown"><h2>▥ Position-wise results</h2><div class="result-small-grid">'+officeCards+'</div></section>';
  $('ballotContent').innerHTML='<div class="notice ok">Voting has closed. Final results are available.</div>'
    +'<div class="results-header"><span class="results-title">MATES Foundation · Final results</span><div class="results-weight-pills" aria-label="Position weights">'+weightPills+'</div></div>'
-   +'<div class="results-grid"><div class="results-left-stack">'+overall+'</div>'+positionsMarkup+featured+'</div>';
+   +'<div class="results-grid results-stacked">'+overall+positionsMarkup+'</div>';
 }
 function displayElections(){
  if(!elections.length){
