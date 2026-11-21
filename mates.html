@@ -625,8 +625,11 @@ async function loadAdminDraft(){
  }
  adminDraft=r.data;
  if(!adminDraft){
-   btn.disabled=true;notice.className='notice';
-   notice.textContent='No unpublished draft remains. The previously prepared draft may already have been published.';
+   btn.disabled=true;notice.className='notice ok';
+   const published=elections.find(e=>e.title==='MATES Foundation Executive Committee Election'&&new Date(e.ends_at)>new Date());
+   notice.textContent=published
+     ? 'The new MATES election is already published with a separate ballot. Voting opens '+fmt(published.starts_at)+' and closes '+fmt(published.ends_at)+' (Sydney time). No additional poll is needed.'
+     : 'No unpublished election draft is available.';
    return;
  }
  $('eTitle').value=adminDraft.title;
