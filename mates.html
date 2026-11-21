@@ -248,25 +248,32 @@ main.wrap{padding-top:25px}
  .results-stacked>.results-overall .chartline strong,.results-stacked>.results-overall .chartline span{font-size:11px}
  .results-stacked>.results-breakdown .result-small-grid{grid-template-columns:1fr}
 }
+
+/* Keep earlier test elections accessible without crowding the new official election. */
+.previous-elections{grid-column:1/-1;margin-top:6px;border:1px solid #d9e8ed;border-radius:13px;background:#fff;overflow:hidden}
+.previous-elections>summary{cursor:pointer;padding:15px 18px;font-weight:750;color:#1b5772;background:#f2f8fa}
+.previous-elections>summary:hover{background:#eaf5f5}
+.previous-election-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;padding:16px}
+.previous-election-grid .card{box-shadow:none}
 </style></head><body>
 <header><div class="wrap nav"><a class="brand" href="./"><img class="brand-icon" src="./assets/openpoll-mark.svg" alt="">Open<span class="brand-poll">Poll</span></a><nav class="nav-links" aria-label="Main navigation"><a href="./">Home</a><a href="./#homeWorkflow">How it works</a><a href="./?create=1">Create poll</a></nav><a class="btn secondary" href="./?page=home" style="text-decoration:none">All polls</a></div></header>
 <section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation<br><span style="color:#7ae4d2">Executive Committee Election</span></h1><p>Nine approved members · Five executive positions · One private ballot per person. Select your name, verify your details and cast your vote.</p><span class="mates-app-version">MATES Foundation member election</span></div><span id="heroElectionStatus" class="hero-status" aria-live="polite"></span></div></section>
 <main class="wrap"><div id="globalMsg" role="status"></div>
 <div id="noSetup" class="notice">Live voting is not enabled. Configure Supabase and load the private member verification data before sharing this page with voters. The ballot layout can be previewed below.</div>
 
-<section id="elections"><div class="controls"><h2 style="margin-right:auto">Election</h2><button class="btn secondary" id="adminToggle">Admin: Create election</button></div><div id="electionList"></div><div id="homeTurnoutPanel" class="hidden"></div></section>
+<section id="elections"><div class="controls"><h2 style="margin-right:auto">Election</h2><button class="btn secondary" id="adminToggle">Admin: New election</button></div><div id="electionList"></div><div id="homeTurnoutPanel" class="hidden"></div></section>
 <section id="admin" class="panel hidden">
 <h2>Administrator — Masrur</h2><p class="muted">Verify with the final four digits of your registered phone number to unlock election settings.</p>
 <form id="adminVerifyForm"><div class="field"><label>Administrator</label><input value="Masrur" disabled></div><div class="field"><label for="adminPin">Last four registered phone digits</label><input id="adminPin" type="password" inputmode="numeric" autocomplete="off" maxlength="4" pattern="[0-9]{4}" placeholder="••••" required></div><button class="btn" id="adminVerifyBtn">Verify as Admin</button></form>
 <div id="adminControls" class="hidden"><div class="notice ok">Verified as Masrur. Admin access lasts 20 minutes.</div><button class="btn secondary" type="button" id="adminSignOut">Lock admin panel</button>
-<h2 style="margin-top:28px">1. Approved members</h2><p class="muted">These nine voters and candidates are pre-registered. Nobody needs to register or add a name.</p><div id="adminRoster"></div><p id="memberCountNote" class="notice"></p><h2 style="margin-top:31px">2. Create election</h2><p class="muted">Choose a title, times and the executive positions. All eligible members will be candidates for each position except themselves.</p>
-<form id="adminForm"><div class="field"><label>Poll / election title</label><input id="eTitle" value="MATES EC Committee Election" maxlength="120" required></div>
+<h2 style="margin-top:28px">1. Approved members</h2><p class="muted">These nine voters and candidates are pre-registered. Nobody needs to register or add a name.</p><div id="adminRoster"></div><p id="memberCountNote" class="notice"></p><h2 style="margin-top:31px">2. Create a fresh election</h2><p class="muted">Start a new election with zero votes. The previous test election and its votes remain separate in Past elections; the existing nine members and verification digits stay unchanged.</p><div class="notice ok"><strong>Fresh official poll:</strong> Set a new opening and closing time, then publish. All members can vote again in the new election.</div>
+<form id="adminForm"><div class="field"><label>Poll / election title</label><input id="eTitle" value="MATES Foundation Executive Committee Election" maxlength="120" required></div>
 <div class="two"><div class="field"><label>Voting opens (Sydney time)</label><input id="eStart" type="datetime-local" required></div><div class="field"><label>Voting closes (Sydney time)</label><input id="eEnd" type="datetime-local" required></div></div>
 <div class="field"><label for="ePositions">Positions / পদবি — one per line</label><textarea id="ePositions" rows="6" style="width:100%;border:1px solid #cbd9e9;border-radius:11px;padding:13px;font:inherit">President / সভাপতি
 Secretary / সাধারণ সম্পাদক
 Vice President / সহ-সভাপতি
 Joint Secretary / যুগ্ম সাধারণ সম্পাদক
-Treasurer / কোষাধ্যক্ষ</textarea><p class="muted small">English / বাংলা labels are shown to members. Existing English position identifiers are preserved in the database.</p></div><button class="btn" type="submit" id="publishElectionBtn">Publish election</button><div id="publishMessage" role="status" aria-live="polite"></div></form>
+Treasurer / কোষাধ্যক্ষ</textarea><p class="muted small">English / বাংলা labels are shown to members. Existing English position identifiers are preserved in the database.</p></div><button class="btn" type="submit" id="publishElectionBtn">Publish new election</button><div id="publishMessage" role="status" aria-live="polite"></div></form>
 </div><p class="muted small">Five unsuccessful verification attempts temporarily lock the account. The site does not send an SMS code.</p></section>
 <section id="ballot" class="hidden"><div class="panel"><div class="controls"><button class="btn secondary" id="backBtn">← Elections</button><span id="electionState" class="tag"></span></div><h2 id="chosenElection" style="margin-top:21px"></h2><p id="schedule" class="muted small"></p><div id="stepper" class="workflow-steps" aria-label="Voting steps"></div><div id="ballotContent"></div></div><div id="turnoutPanel" class="turnout-panel" aria-live="polite"></div></section>
 <section class="panel" id="registeredMembers"><div class="controls"><h2 style="margin:0">Eligible members & candidates</h2><span class="tag">9 members</span></div><p class="muted small">All nine members are eligible to vote and stand for each position. Only first names are shown publicly; registered phone details stay private.</p><div id="rosterDisplay" class="options"></div></section>
@@ -354,11 +361,16 @@ async function refreshTurnout(election=active,container=$('turnoutPanel')){
 }
 function showLandingParticipation(){
  const section=$('homeTurnoutPanel');
- const election=elections.find(x=>status(x)==='Open')||elections.find(x=>status(x)==='Closed');
- if(!election){section.classList.add('hidden');return}
+ // Use the current election, never stale turnout from an earlier completed test.
+ const election=elections.find(x=>status(x)==='Open')
+   ||elections.find(x=>status(x)==='Upcoming')||elections[0];
+ if(!election||status(election)==='Upcoming'){
+   section.classList.add('hidden');
+   return;
+ }
  section.classList.remove('hidden');
  section.className='turnout-panel';
- section.innerHTML='<div class="turnout-heading"><h3>Live election participation</h3><span class="turnout-status">Checking turnout…</span></div>';
+ section.innerHTML='<div class="turnout-heading"><h3>Election participation</h3><span class="turnout-status">Checking turnout…</span></div>';
  refreshTurnout(election,section);
 }
 function updateStepper(stage){
@@ -562,15 +574,25 @@ async function renderFinalResults(){
 }
 function displayElections(){
  if(!elections.length){
-   $('electionList').innerHTML='<div class="card"><span class="tag">Awaiting election</span><h3>MATES Foundation Executive Committee Election</h3><p class="muted">The administrator will publish the election dates. The nine approved members do not need to register.</p></div>';
+   $('electionList').innerHTML='<div class="card"><span class="tag">Awaiting election</span><h3>MATES Foundation Executive Committee Election</h3><p class="muted">Masrur can verify as administrator and publish a new election. The nine members are already registered.</p></div>';
    return;
  }
- $('electionList').innerHTML=elections.map(e=>{
+ const primary=elections.find(e=>status(e)==='Open')
+   ||elections.find(e=>status(e)==='Upcoming')
+   ||elections[0];
+ const previous=elections.filter(e=>e.id!==primary.id);
+ const card=e=>{
    const state=status(e);
-   return '<div class="card"><div class="controls"><span class="tag '+state.toLowerCase()+'">'+(state==='Open'?'● Voting open':state==='Closed'?'✓ Election closed':'◷ Upcoming')+'</span><span class="small muted">Closes '+esc(fmt(e.ends_at))+'</span></div>'
-     +'<h3>'+esc(e.title)+'</h3><p class="muted">Nine approved members · One ballot per person · Private choices</p><button class="btn" data-elec="'+esc(e.id)+'">'+(state==='Closed'?'View final results':state==='Upcoming'?'Election information':'Go to voting →')+'</button> '
-     +'<button class="btn secondary" data-copy="'+esc(e.id)+'">Copy election link</button></div>';
- }).join('');
+   return '<article class="card"><div class="controls"><span class="tag '+state.toLowerCase()+'">'
+      +(state==='Open'?'● Voting open':state==='Closed'?'✓ Election closed':'◷ Upcoming')
+      +'</span><span class="small muted">Closes '+esc(fmt(e.ends_at))+'</span></div>'
+      +'<h3>'+esc(e.title)+'</h3><p class="muted">Nine approved members · One ballot per member · Private choices</p>'
+      +'<button class="btn" data-elec="'+esc(e.id)+'">'
+      +(state==='Closed'?'View final results':state==='Upcoming'?'Election information':'Go to voting →')
+      +'</button> <button class="btn secondary" data-copy="'+esc(e.id)+'">Copy election link</button></article>';
+ };
+ $('electionList').innerHTML=card(primary)
+   +(previous.length?'<details class="previous-elections"><summary>Past and other elections ('+previous.length+')</summary><div class="previous-election-grid">'+previous.map(card).join('')+'</div></details>':'');
  document.querySelectorAll('[data-elec]').forEach(button=>button.onclick=()=>chooseElection(elections.find(e=>e.id===button.dataset.elec)));
  document.querySelectorAll('[data-copy]').forEach(button=>button.onclick=async()=>{
    const url=new URL('mates.html',location.href);url.searchParams.set('election',button.dataset.copy);
@@ -578,10 +600,9 @@ function displayElections(){
    catch{window.prompt('Copy this link:',url.href)}
  });
 }
-
 async function load(){renderRoster();if(!db){selectPreview();$('adminToggle').disabled=true;$('electionList').innerHTML='<div class="card"><h3>MATES EC Committee Election</h3><p class="muted">Nine eligible members competing for President / সভাপতি, Secretary / সাধারণ সম্পাদক, Vice President / সহ-সভাপতি, Joint Secretary / যুগ্ম সাধারণ সম্পাদক, Treasurer / কোষাধ্যক্ষ.</p><span class="tag">Preview only — database setup required</span></div>';return}
 $('noSetup').classList.add('hidden');$('preview').classList.add('hidden');
-const [a,b]=await Promise.all([db.rpc('mates_member_names'),db.from('mates_elections').select('id,title,starts_at,ends_at').order('starts_at',{ascending:false})]);if(a.error||b.error){msg('MATES voting database is not configured: '+(a.error?.message||b.error?.message),'error');return}roster=a.data||[];elections=b.data||[];renderRoster();displayElections();showLandingParticipation();updateHeroStatus(elections.find(e=>status(e)==='Open')||elections[0]);
+const [a,b]=await Promise.all([db.rpc('mates_member_names'),db.from('mates_elections').select('id,title,starts_at,ends_at').order('starts_at',{ascending:false})]);if(a.error||b.error){msg('MATES voting database is not configured: '+(a.error?.message||b.error?.message),'error');return}roster=a.data||[];elections=b.data||[];renderRoster();displayElections();showLandingParticipation();updateHeroStatus(elections.find(e=>status(e)==='Open')||elections.find(e=>status(e)==='Upcoming')||elections[0]);
 const id=new URLSearchParams(location.search).get('election');const found=elections.find(x=>x.id===id);if(found)chooseElection(found)}
 function updateAdminRoster(){
  const expected=['Masrur','AbdulAhad','Akter','Rubel','Anwar','Numan','Sakil','Shamim','Turab'];
@@ -614,7 +635,7 @@ $('adminForm').onsubmit=async ev=>{
  try{
    const r=await db.rpc('mates_create_election_admin',{p_token:adminToken,p_title:$('eTitle').value,p_starts:starts.toISOString(),p_ends:ends.toISOString(),p_positions:titles});
    if(r.error){publishFeedback('Supabase could not publish this election: '+r.error.message);return}
-   $('admin').classList.add('hidden');await load();msg('Election published successfully. Copy the link to share with members.','ok');
+   $('admin').classList.add('hidden');await load();msg('New election published with zero votes. Its voting link is separate from the previous test.','ok');
  }catch(error){publishFeedback('Could not publish: '+error.message)}
  finally{button.disabled=false}
 };
