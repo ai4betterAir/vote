@@ -186,8 +186,19 @@ main.wrap{padding-top:25px}
 .turnout-person .tag{padding:7px 9px}
 @media(max-width:950px){.results-grid,.confirmation-layout{grid-template-columns:1fr}.vote-columns{grid-template-columns:1fr}.hero-status{margin-left:0}.nav-links{display:none}}
 @media(max-width:610px){.mates-hero-inner{align-items:center}.mates-hero-logo{width:90px;height:85px;padding:5px 9px 5px 0}.mates-hero h1{font-size:23px}.mates-hero p{font-size:13px}.hero-status{display:none!important}.workflow-steps{gap:2px}.workflow-step{font-size:10px}.workflow-step b{width:19px;height:19px;margin-right:3px}.vote-section-body{padding:15px}.vote-choice{grid-template-columns:1fr;gap:4px}.submitted-line{grid-template-columns:1fr auto}.submitted-line span{grid-column:1}.submitted-line b{grid-column:1}.submitted-line em{grid-column:2;grid-row:1 / span 2}.results-grid .results-overall .chart{grid-template-columns:23px 77px minmax(0,1fr) 43px;gap:5px;margin:12px 8px}.results-grid .results-overall .chartline strong{font-size:11px}.results-grid .results-overall .chartline span{font-size:11px}.turnout-panel{padding:17px}.nav .btn.secondary{margin-left:0}}
+
+/* Results bars share one grid row; preserve readable name and numeric score */
+.results-grid .results-overall .chart{grid-template-rows:1fr}
+.results-grid .results-overall .result-rank,
+.results-grid .results-overall .chartline strong,
+.results-grid .results-overall .chartline span,
+.results-grid .results-overall .track{grid-row:1}
+.results-grid .results-overall .result-rank{grid-column:1}
+.results-grid .results-overall .chartline strong{grid-column:2}
+.results-grid .results-overall .track{grid-column:3}
+.results-grid .results-overall .chartline span{grid-column:4}
 </style></head><body>
-<header><div class="wrap nav"><a class="brand" href="./"><b>✓</b> Open<span style="color:#27d4c5">Poll</span></a><nav class="nav-links" aria-label="Main navigation"><a href="./">Home</a><a href="./#homeWorkflow">How it works</a><a href="./">Create poll</a></nav><a class="btn secondary" href="./?page=home" style="text-decoration:none">All polls</a></div></header>
+<header><div class="wrap nav"><a class="brand" href="./"><b>✓</b> Open<span style="color:#27d4c5">Poll</span></a><nav class="nav-links" aria-label="Main navigation"><a href="./">Home</a><a href="./#homeWorkflow">How it works</a><a href="./?create=1">Create poll</a></nav><a class="btn secondary" href="./?page=home" style="text-decoration:none">All polls</a></div></header>
 <section class="head mates-hero"><div class="wrap mates-hero-inner"><img class="mates-hero-logo" src="https://raw.githubusercontent.com/ai4betterAir/MATESFoundation/main/assets/mates-foundation-logo.png" alt="Official MATES Foundation logo"><div><div class="eyebrow">Members-only committee election</div><h1>MATES Foundation<br><span style="color:#7ae4d2">Executive Committee Election</span></h1><p>Nine approved members · Five executive positions · One private ballot per person. Select your name, verify your details and cast your vote.</p><span class="mates-app-version">MATES Foundation member election</span></div><span id="heroElectionStatus" class="hero-status" aria-live="polite"></span></div></section>
 <main class="wrap"><div id="globalMsg" role="status"></div>
 <div id="noSetup" class="notice">Live voting is not enabled. Configure Supabase and load the private member verification data before sharing this page with voters. The ballot layout can be previewed below.</div>
@@ -537,7 +548,7 @@ await load();
 setInterval(()=>{
  if(active&&!$('ballot').classList.contains('hidden')){
    const current=status(active);
-   if($('electionState').textContent!==current){$('electionState').textContent=current;$('electionState').className='tag '+current.toLowerCase();updateHeroStatus(active);if(current==='Closed')renderElection()}
+   if($('electionState').textContent!==current){$('electionState').textContent=current;$('electionState').className='tag '+current.toLowerCase();updateHeroStatus(active);if(current==='Closed'||current==='Open')renderElection()}
    refreshTurnout();
  }else if(elections.length){showLandingParticipation()}
 },15000);
