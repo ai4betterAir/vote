@@ -135,20 +135,39 @@ begin
  delete from public.mates_sessions where token_hash=encode(digest(p_token,'sha256'),'hex');
 end; $$;
 
+-- Results become public at the scheduled close, or earlier only when all
+-- nine registered members have cast one complete ballot for each configured office.
 create or replace function public.mates_results(p_election uuid)
-returns table("position" text,candidate_id uuid,votes bigint)
-language plpgsql stable security definer set search_path=public,extensions,pg_temp as $$
+returns table("position" text, candidate_id uuid, votes bigint)
+language plpgsql stable security definer
+set search_path=public,extensions,pg_temp as $mates_results_early$
+declare
+ v_members int; v_positions int; v_voters int; v_votes int; v_done boolean := false;
 begin
- if not exists(select 1 from public.mates_elections where id=p_election and ends_at<=now()) then
-  raise exception 'Results are unavailable until voting closes'; end if;
+ if not exists(select 1 from public.mates_elections e where e.id=p_election) then
+  raise exception 'Election not found';
+ end if;
+ select count(*) into v_members from public.mates_members;
+ select count(*) into v_positions from public.mates_positions where election_id=p_election;
+ select count(distinct b.member_id),count(*) into v_voters,v_votes
+ from public.mates_ballots b where b.election_id=p_election;
+ v_done:=v_members=9 and v_positions>0
+         and v_voters=v_members and v_votes=v_members*v_positions;
+ if not exists(
+  select 1 from public.mates_elections e
+  where e.id=p_election and
+   (e.ends_at<=now() or (e.starts_at<=now() and v_done))
+ ) then
+  raise exception 'Results are available after closing or once all nine members have voted';
+ end if;
  return query
- select p.pos,m.id,count(b.candidate_id)::bigint
- from unnest(array['President','Secretary','Vice President','Joint Secretary','Treasurer']) p(pos)
- cross join public.mates_members m
+ select p.title,m.id,count(b.candidate_id)::bigint
+ from public.mates_positions p cross join public.mates_members m
  left join public.mates_ballots b on b.election_id=p_election
- and b."position"=p.pos and b.candidate_id=m.id
- group by p.pos,m.id;
-end; $$;
+ and b."position"=p.title and b.candidate_id=m.id
+ where p.election_id=p_election
+ group by p.title,m.id;
+end; $mates_results_early$;
 
 revoke all on function public.mates_member_names() from public,anon,authenticated;
 revoke all on function public.mates_create_election(text,timestamptz,timestamptz) from public,anon,authenticated;
