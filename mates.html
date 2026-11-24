@@ -318,7 +318,8 @@ const displayMember=name=>name==='AbdulAhad'?'Abdul Ahad':name;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=s=>new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:'Australia/Sydney'}).format(new Date(s));
-const status=e=>Date.now()<new Date(e.starts_at)?'Upcoming':Date.now()<new Date(e.ends_at)?'Open':'Closed';
+const completedElections=new Set();
+const status=e=>Date.now()<new Date(e.starts_at)?'Upcoming':completedElections.has(e.id)||Date.now()>=new Date(e.ends_at)?'Closed':'Open';
 let roster=[],elections=[],active=null,token=null,verifiedMember=null,adminToken=null,editingMember=null,currentPositions=[...positions],lastSubmittedChoices=null,adminDraft=null;
 function msg(t,type=''){$('globalMsg').innerHTML='<div class="notice '+type+'">'+esc(t)+'</div>';}
 function candidatesFor(member){return roster.filter(m=>m.id!==member)}
@@ -331,7 +332,7 @@ async function chooseElection(e){
  active=e;token=null;verifiedMember=null;lastSubmittedChoices=null;
  $('ballot').classList.remove('hidden');$('elections').classList.add('hidden');$('preview').classList.add('hidden');$('registeredMembers').classList.add('hidden');
  $('chosenElection').textContent=e.title;
- $('schedule').textContent='Voting opens '+fmt(e.starts_at)+' · Closes '+fmt(e.ends_at)+' (Sydney time)';
+ $('schedule').textContent='Voting opens '+fmt(e.starts_at)+' · Closes '+fmt(e.ends_at)+' (Sydney time). Results are released at closing or when all nine members finish voting.';
  $('electionState').textContent=status(e);$('electionState').className='tag '+status(e).toLowerCase();
  updateHeroStatus(e);
  window.scrollTo(0,0);
@@ -365,6 +366,19 @@ async function refreshTurnout(election=active,container=$('turnoutPanel')){
  }
  const voters=response.data||[];
  const total=roster.length||9;
+ // Before marking an early completion, ask the protected results RPC to
+ // validate that all nine members submitted every position (not merely that
+ // nine names appear in the participation list).
+ let newlyCompleted=false;
+ if(total===9 && voters.length===9 && !completedElections.has(election.id)
+    && Date.now()>=new Date(election.starts_at)
+    && Date.now()<new Date(election.ends_at)){
+   const ready=await db.rpc('mates_results',{p_election:election.id});
+   if(!ready.error){
+     completedElections.add(election.id);
+     newlyCompleted=true;
+   }
+ }
  const pct=total?100*voters.length/total:0;
  const confirmValue=$('confirmTurnoutValue');if(confirmValue&&active?.id===election.id){confirmValue.textContent=voters.length+' of '+total+' members voted · '+pct.toFixed(0)+'%';const bar=$('confirmTurnoutFill');if(bar)bar.style.width=Math.min(100,pct).toFixed(2)+'%';}
  const isOpen=status(election)==='Open';
@@ -374,7 +388,16 @@ async function refreshTurnout(election=active,container=$('turnoutPanel')){
  container.innerHTML='<div class="turnout-heading"><h3>Members who have already voted</h3><span class="turnout-status">'+(isOpen?'● Voting is ongoing':'Voting has closed')+'</span></div>'
  +'<div class="turnout-stats"><strong>'+voters.length+' of '+total+'</strong><span>approved members have voted · '+pct.toFixed(0)+'% participation</span></div>'
  +'<div class="turnout-track" role="progressbar" aria-label="Election participation" aria-valuenow="'+voters.length+'" aria-valuemin="0" aria-valuemax="'+total+'"><div class="turnout-fill" style="width:'+Math.min(100,pct).toFixed(1)+'%"></div></div>'
- +'<div class="turnout-names">'+list+'</div><p class="turnout-privacy">Only participation status and first names are displayed. Nobody can see which candidates a member selected. Final results are available after voting closes.</p>';
+ +'<div class="turnout-names">'+list+'</div><p class="turnout-privacy">Only participation status and first names are displayed. Nobody can see which candidates a member selected. Final results appear at scheduled closing or once all nine members submit complete ballots.</p>';
+ if(newlyCompleted){
+   displayElections();
+   updateHeroStatus(election);
+   if(active?.id===election.id && !$('ballot').classList.contains('hidden')){
+     $('electionState').textContent='Closed';
+     $('electionState').className='tag closed';
+     renderElection();
+   }
+ }
 }
 function showLandingParticipation(){
  const section=$('homeTurnoutPanel');
@@ -585,7 +608,7 @@ async function renderFinalResults(){
  };
  const officeCards=orderedPositions.map(renderPositionCard).join('');
  const positionsMarkup='<section class="results-breakdown"><h2>▥ Individual position results</h2><div class="result-small-grid">'+officeCards+'</div></section>';
- $('ballotContent').innerHTML='<div class="notice ok">Voting has closed. Final results are available.</div>'
+ $('ballotContent').innerHTML='<div class="notice ok">'+(completedElections.has(active.id)&&Date.now()<new Date(active.ends_at)?'All nine members have submitted their ballots. Final results are available.':'Voting has closed. Final results are available.')+'</div>'
    +'<div class="results-header"><span class="results-title">MATES Foundation · Final results</span><div class="results-weight-pills" aria-label="Position weights">'+weightPills+'</div></div>'
    +'<div class="results-grid results-stacked">'+overall+positionsMarkup+'</div>';
 }
